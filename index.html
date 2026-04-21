@@ -3,30 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sazan AI</title>
+    <title>Sazan AI - Register & Login</title>
     <style>
         body { background: #0f0f0f; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* SOL TARAF: Sohbet Ekranı */
+        /* SOL TARAF: Chat Alanı */
         .main-chat { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; transition: 0.5s; }
         #chat-box { width: 100%; max-width: 700px; flex: 1; overflow-y: auto; padding: 20px; border: 1px solid #333; background: #1a1a1a; border-radius: 12px; margin-bottom: 20px; }
         
-        /* SAĞ TARAF: Login Paneli */
-        .login-sidebar { width: 300px; background: #1e1e1e; border-left: 2px solid #333; padding: 30px; display: flex; flex-direction: column; gap: 15px; }
-        .login-sidebar h2 { color: #007bff; text-align: center; }
+        /* SAĞ TARAF: Auth Paneli */
+        .auth-sidebar { width: 320px; background: #1e1e1e; border-left: 2px solid #333; padding: 20px; display: flex; flex-direction: column; }
+        .tab-menu { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; cursor: pointer; background: #333; border: none; color: white; border-radius: 5px; }
+        .tab-btn.active { background: #007bff; }
         
-        /* Form Elemanları */
-        input { padding: 12px; border-radius: 8px; border: none; background: #252525; color: white; outline: none; }
-        button { padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .logout-btn { background: #dc3545; display: none; }
+        .auth-form { display: none; flex-direction: column; gap: 10px; }
+        .auth-form.active { display: flex; }
 
-        /* Mesaj Stilleri */
-        .msg { margin-bottom: 15px; padding: 12px; border-radius: 10px; max-width: 80%; }
+        input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #252525; color: white; outline: none; }
+        button.action-btn { padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .msg { margin-bottom: 15px; padding: 12px; border-radius: 10px; max-width: 85%; }
         .user-msg { background: #007bff; align-self: flex-end; margin-left: auto; }
         .ai-msg { background: #333; border-left: 4px solid #00ff00; }
         
-        /* Kilitli Durum */
-        .locked { filter: blur(8px); pointer-events: none; opacity: 0.5; }
+        .locked { filter: blur(10px); pointer-events: none; opacity: 0.3; }
+        #userInfo { text-align: center; display: none; }
     </style>
 </head>
 <body>
@@ -34,58 +36,92 @@
     <div id="mainSection" class="main-chat locked">
         <h1>🐟 Sazan AI</h1>
         <div id="chat-box">
-            <div class="msg ai-msg">Önce sağ taraftan giriş yapmalısın kaptan!</div>
+            <div class="msg ai-msg">Önce kayıt ol veya giriş yap!</div>
         </div>
         <div style="width: 100%; max-width: 700px; display: flex; gap: 10px;">
-            <input type="text" id="userInput" style="flex: 1;" placeholder="Sazan AI'ya sor...">
-            <button onclick="askSazan()">Gönder</button>
+            <input type="text" id="userInput" style="flex: 1;" placeholder="Sazan AI ile konuş...">
+            <button onclick="askSazan()" class="action-btn">Gönder</button>
         </div>
     </div>
 
-    <div class="login-sidebar">
-        <h2>Giriş Yap</h2>
-        <div id="loginForm">
-            <input type="text" id="adminName" placeholder="Kullanıcı Adı">
-            <input type="password" id="adminPass" placeholder="Şifre" style="margin-top: 10px; width: 275px;">
-            <button onclick="checkLogin()" style="margin-top: 15px; width: 100%;">Sistemi Aç</button>
-            <p id="errorMsg" style="color: red; font-size: 12px; text-align: center; display: none;">Hatalı bilgi!</p>
+    <div class="auth-sidebar">
+        <div id="authTabs">
+            <div class="tab-menu">
+                <button class="tab-btn active" onclick="showTab('login')">Giriş</button>
+                <button class="tab-btn" onclick="showTab('register')">Kayıt Ol</button>
+            </div>
+
+            <div id="loginForm" class="auth-form active">
+                <h2>Giriş Yap</h2>
+                <input type="text" id="lName" placeholder="Kullanıcı Adı">
+                <input type="password" id="lPass" placeholder="Şifre">
+                <button class="action-btn" onclick="handleLogin()">Giriş</button>
+            </div>
+
+            <div id="registerForm" class="auth-form">
+                <h2>Yeni Hesap</h2>
+                <input type="text" id="rName" placeholder="Kullanıcı Adı">
+                <input type="password" id="rPass" placeholder="Şifre">
+                <button class="action-btn" onclick="handleRegister()" style="background: #007bff;">Kayıt Ol</button>
+            </div>
+            <p id="statusMsg" style="text-align: center; font-size: 13px; margin-top: 10px;"></p>
         </div>
-        <div id="userInfo" style="display: none; text-align: center;">
-            <p>Hoş geldin, <b id="displayUser"></b>!</p>
-            <button onclick="logout()" class="logout-btn" id="logoutBtn" style="display: block; width: 100%;">Çıkış Yap</button>
+
+        <div id="userInfo">
+            <h2 style="color: #00ff00;">Aktif</h2>
+            <p>Hoş geldin, <b id="currentUserName"></b>!</p>
+            <button onclick="logout()" class="action-btn" style="background: #dc3545; width: 100%;">Çıkış Yap</button>
         </div>
     </div>
 
     <script type="module">
-        const API_KEY = "AIzaSyDeWlOKqVUg-lPm-_Cs5x8kxd7I_pVElDw";
+        const API_KEY = "AIzaSyA3n_b0FjBLvarfgap2CWvi-Ql-yTeTtq4";
 
-        // GİRİŞ KONTROLÜ
-        window.checkLogin = function() {
-            const name = document.getElementById("adminName").value;
-            const pass = document.getElementById("adminPass").value;
+        // SEKME DEĞİŞTİRME
+        window.showTab = function(type) {
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(type + 'Form').classList.add('active');
+            event.target.classList.add('active');
+        }
 
-            // Örnek bilgiler: admin / 1234
-            if(name === "admin" && pass === "1234") {
+        // KAYIT OLMA (LocalStorage kullanır)
+        window.handleRegister = function() {
+            const name = document.getElementById("rName").value;
+            const pass = document.getElementById("rPass").value;
+            if(!name || !pass) return alert("Boş bırakma!");
+
+            localStorage.setItem("user_" + name, pass);
+            document.getElementById("statusMsg").innerText = "Kayıt başarılı! Şimdi giriş yap.";
+            document.getElementById("statusMsg").style.color = "#00ff00";
+            showTab('login');
+        }
+
+        // GİRİŞ YAPMA
+        window.handleLogin = function() {
+            const name = document.getElementById("lName").value;
+            const pass = document.getElementById("lPass").value;
+            const savedPass = localStorage.getItem("user_" + name);
+
+            if(savedPass && savedPass === pass) {
                 document.getElementById("mainSection").classList.remove("locked");
-                document.getElementById("loginForm").style.display = "none";
+                document.getElementById("authTabs").style.display = "none";
                 document.getElementById("userInfo").style.display = "block";
-                document.getElementById("displayUser").innerText = name;
-                document.getElementById("chat-box").innerHTML += `<div class="msg ai-msg">Sistem açıldı! Sorunu bekliyorum.</div>`;
+                document.getElementById("currentUserName").innerText = name;
+                document.getElementById("chat-box").innerHTML += `<div class="msg ai-msg">Sazan AI bağlandı. Hoş geldin ${name}!</div>`;
             } else {
-                document.getElementById("errorMsg").style.display = "block";
+                document.getElementById("statusMsg").innerText = "Hatalı isim veya şifre!";
+                document.getElementById("statusMsg").style.color = "red";
             }
         }
 
-        window.logout = function() {
-            location.reload(); // Sayfayı yenileyerek çıkış yap
-        }
+        window.logout = function() { location.reload(); }
 
-        // CHAT FONKSİYONU
+        // GEMINI CHAT
         window.askSazan = async function() {
             const input = document.getElementById("userInput");
             const chatBox = document.getElementById("chat-box");
             const text = input.value.trim();
-
             if (!text) return;
 
             chatBox.innerHTML += `<div class="msg user-msg">${text}</div>`;
@@ -95,18 +131,13 @@
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Senin adın Sazan AI. Esprili birisin. Soru: ${text}` }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `Senin adın Sazan AI. Esprili birisin. Kullanıcı: ${text}` }] }] })
                 });
                 const data = await response.json();
                 const aiReply = data.candidates[0].content.parts[0].text;
-
                 chatBox.innerHTML += `<div class="msg ai-msg"><b>Sazan AI:</b><br>${aiReply}</div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
-            } catch (e) {
-                chatBox.innerHTML += `<div class="msg ai-msg">Bağlantı hatası!</div>`;
-            }
+            } catch (e) { alert("Hata oluştu!"); }
         }
     </script>
 </body>
