@@ -3,248 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAZAN AI | ADMIN PANEL</title>
+    <title>SAZAN AI</title>
     <style>
         :root {
-            --admin-neon: #ff0055;
-            --user-neon: #00f2fe;
-            --bg-dark: #020202;
-            --glass: rgba(15, 15, 15, 0.85);
+            --bg: #0b0e14;
+            --text: #e6edf3;
+            --primary: #2f81f7;
+            --admin-color: #00ff41; /* Klasik Hacker Yeşili */
         }
 
-        body { 
-            background: var(--bg-dark);
-            color: #e0e0e0;
-            font-family: 'Courier New', Courier, monospace; /* Admin havası için monospaced font */
-            margin: 0; 
-            display: flex; 
-            height: 100vh;
-            overflow: hidden;
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            display: flex; flex-direction: column;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Matrix/Neon Arka Plan Efekti */
-        body::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-            z-index: -1;
+        /* --- ADMIN MODU EFEKTLERİ --- */
+        body.admin-mode {
+            background-color: #000;
+            font-family: 'Courier New', monospace;
+            --primary: var(--admin-color);
         }
 
-        /* SOL TARAF: Chat Alanı */
-        .main-chat { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 20px; 
-            position: relative;
+        /* Başlık Çubuğu */
+        .header {
+            padding: 15px 30px;
+            border-bottom: 1px solid #30363d;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        #chat-box { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 25px; 
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 2px solid #1a1a1a;
-            border-radius: 15px; 
-            box-shadow: inset 0 0 20px rgba(0,0,0,1);
-            margin-bottom: 20px;
+        .status-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #238636; display: inline-block; margin-right: 5px;
+            box-shadow: 0 0 10px #238636;
         }
 
-        /* SAĞ TARAF: Admin Paneli */
-        .admin-sidebar { 
-            width: 380px; 
-            background: #050505;
-            border-left: 2px solid var(--admin-neon);
-            padding: 25px; 
-            box-shadow: -10px 0 30px rgba(255, 0, 85, 0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        /* Chat Alanı */
+        #chat-container {
+            flex: 1; overflow-y: auto;
+            padding: 40px 15% 100px 15%;
+            display: flex; flex-direction: column; gap: 25px;
         }
 
-        /* Neon Butonlar ve Inputlar */
-        input { 
-            background: #111; 
-            border: 1px solid #333; 
-            color: var(--user-neon); 
-            padding: 15px; 
-            border-radius: 5px; 
-            outline: none;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
-        input:focus { border-color: var(--user-neon); box-shadow: 0 0 10px var(--user-neon); }
+        .message { max-width: 85%; line-height: 1.6; font-size: 16px; animation: fadeIn 0.3s ease; }
+        .user { align-self: flex-end; color: #8b949e; border-right: 2px solid var(--primary); padding-right: 15px; }
+        .ai { align-self: flex-start; border-left: 2px solid #30363d; padding-left: 15px; }
 
-        .btn { 
-            padding: 15px; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            text-transform: uppercase;
+        /* Admin Mesaj Stili */
+        .admin-mode .ai { border-left-color: var(--admin-color); color: var(--admin-color); text-shadow: 0 0 5px var(--admin-color); }
+        .admin-mode .user { color: #fff; border-right-color: var(--admin-color); }
+
+        /* Giriş Alanı */
+        .input-wrapper {
+            position: fixed; bottom: 0; width: 100%;
+            padding: 30px 0; background: linear-gradient(transparent, var(--bg) 50%);
+            display: flex; justify-content: center;
+        }
+
+        .input-container {
+            width: 70%; max-width: 800px;
+            background: #161b22; border: 1px solid #30363d;
+            border-radius: 12px; display: flex; padding: 10px 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             transition: 0.3s;
         }
 
-        .btn-admin { background: var(--admin-neon); color: white; box-shadow: 0 0 15px var(--admin-neon); }
-        .btn-admin:hover { filter: brightness(1.2); transform: scale(1.02); }
+        .admin-mode .input-container { border-color: var(--admin-color); box-shadow: 0 0 20px rgba(0,255,65,0.2); }
 
-        /* Mesaj Balonları */
-        .msg { margin-bottom: 20px; padding: 15px; border-radius: 5px; position: relative; max-width: 85%; }
-        .user-msg { 
-            background: rgba(0, 242, 254, 0.1); 
-            border: 1px solid var(--user-neon); 
-            color: var(--user-neon);
-            align-self: flex-end; 
-            margin-left: auto;
-            text-shadow: 0 0 5px var(--user-neon);
-        }
-        .ai-msg { 
-            background: rgba(255, 0, 85, 0.05); 
-            border: 1px solid var(--admin-neon);
-            color: var(--admin-neon);
-            border-left: 5px solid var(--admin-neon);
+        input {
+            flex: 1; background: transparent; border: none; color: white;
+            font-size: 16px; outline: none; padding: 10px;
         }
 
-        /* Admin Rozeti */
-        .admin-badge {
-            background: var(--admin-neon);
-            color: black;
-            padding: 2px 8px;
-            font-size: 10px;
-            font-weight: bold;
-            border-radius: 3px;
-            margin-bottom: 5px;
-            display: inline-block;
+        button {
+            background: var(--primary); color: white; border: none;
+            padding: 0 20px; border-radius: 8px; cursor: pointer;
+            font-weight: bold; transition: 0.2s;
         }
 
-        .locked { filter: grayscale(1) blur(20px); pointer-events: none; }
-        
-        /* RGB Efekti */
-        .rgb-line {
-            height: 3px;
-            width: 100%;
-            background: linear-gradient(90deg, #ff0000, #00ff00, #0000ff, #ff0000);
-            background-size: 400% 400%;
-            animation: rgb-move 5s linear infinite;
-        }
+        button:hover { opacity: 0.8; transform: scale(1.05); }
 
-        @keyframes rgb-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Admin Scanline Efekti */
+        .scanline { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                                 linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+                     background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 100; }
+        .admin-mode .scanline { display: block; }
     </style>
 </head>
-<body>
+<body id="main-body">
 
-    <div id="mainSection" class="main-chat locked">
-        <div class="rgb-line" style="position: absolute; top: 0; left: 0;"></div>
-        <h1 style="color: var(--user-neon); text-shadow: 0 0 20px var(--user-neon); margin: 10px 0;">> SAZAN_AI_OS_V2.0</h1>
-        
-        <div id="chat-box">
-            <div class="msg ai-msg">Sistem kilitli. Yetkili girişi bekleniyor...</div>
+    <div class="scanline"></div>
+
+    <div class="header">
+        <div style="font-weight: bold; letter-spacing: 1px;">
+            <span class="status-dot"></span> <span id="model-name">SAZAN-AI v1.5</span>
         </div>
+        <div id="mode-text" style="font-size: 12px; color: #8b949e;">NORMAL_ACCESS</div>
+    </div>
 
-        <div style="display: flex; gap: 10px; background: #111; padding: 15px; border-radius: 10px; border: 1px solid var(--user-neon);">
-            <span style="color: var(--user-neon); padding-top: 10px;">root@sazan:~$</span>
-            <input type="text" id="userInput" style="flex: 1; background: transparent; border: none;" placeholder="Komut girin...">
-            <button onclick="askSazan()" class="btn btn-admin" style="padding: 10px 30px;">ENTER</button>
+    <div id="chat-container">
+        <div class="message ai">
+            Sisteme hoş geldin. Sana nasıl yardımcı olabilirim?
         </div>
     </div>
 
-    <div class="admin-sidebar">
-        <h2 style="color: var(--admin-neon); text-align: center; text-shadow: 0 0 10px var(--admin-neon);">ADMIN_LOGIN</h2>
-        
-        <div id="authTabs">
-            <div id="loginForm" style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="lName" placeholder="USER_ID">
-                <input type="password" id="lPass" placeholder="PASSCODE">
-                <button class="btn btn-admin" onclick="handleLogin()">ACCESS_GRANTED</button>
-                <hr style="border: 1px solid #222; width: 100%;">
-                <button class="btn" style="background: #333; color: white;" onclick="showRegister()">NEW_SYSTEM_USER</button>
-            </div>
-
-            <div id="registerForm" style="display: none; flex-direction: column; gap: 15px;">
-                <input type="text" id="rName" placeholder="NEW_ID">
-                <input type="password" id="rPass" placeholder="NEW_PASS">
-                <button class="btn" style="background: var(--user-neon); color: black;" onclick="handleRegister()">CREATE_USER</button>
-            </div>
-            <p id="statusMsg" style="text-align: center; margin-top: 10px;"></p>
-        </div>
-
-        <div id="userInfo" style="display: none; border: 1px solid var(--admin-neon); padding: 15px; border-radius: 10px; background: rgba(255,0,85,0.05);">
-            <div class="admin-badge">SYSTEM_ADMIN</div>
-            <h3 style="margin: 5px 0;">User: <span id="currentUserName" style="color: var(--admin-neon);"></span></h3>
-            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">Status: Online / Encrypted</div>
-            <button onclick="location.reload()" class="btn" style="background: transparent; border: 1px solid #444; color: #444; width: 100%;">SYSTEM_SHUTDOWN</button>
+    <div class="input-wrapper">
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Bir mesaj yazın veya komut girin..." autocomplete="off">
+            <button onclick="send()">GÖNDER</button>
         </div>
     </div>
 
     <script>
-        const API_KEY = "AIzaSyA3n_b0FjBLvarfgap2CWvi-Ql-yTeTtq4"; // Kendi key'ini buraya koy
+        // API KEY'İNİ BURAYA YAPIŞTIR
+        const API_KEY = "BURAYA_API_KEYINI_YAZ"; 
+        let isAdmin = false;
 
-        function showRegister() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'flex';
-        }
+        async function send() {
+            const input = document.getElementById("userInput");
+            const box = document.getElementById("chat-container");
+            const val = input.value.trim();
 
-        window.handleRegister = function() {
-            const name = document.getElementById("rName").value;
-            const pass = document.getElementById("rPass").value;
-            if(!name || !pass) return alert("Hata!");
-            localStorage.setItem("sazan_v2_" + name, pass);
-            alert("Sistem kullanıcısı oluşturuldu!");
-            location.reload();
-        }
+            if (!val) return;
 
-        window.handleLogin = function() {
-            const name = document.getElementById("lName").value;
-            const pass = document.getElementById("lPass").value;
-            const savedPass = localStorage.getItem("sazan_v2_" + name);
+            // GİZLİ KOMUT: Po
+            if (val === "Po") {
+                activateAdmin();
+                input.value = "";
+                return;
+            }
 
-            if(savedPass === pass && name !== "") {
-                document.getElementById("mainSection").classList.remove("locked");
-                document.getElementById("authTabs").style.display = "none";
-                document.getElementById("userInfo").style.display = "block";
-                document.getElementById("currentUserName").innerText = name.toUpperCase();
-                addMessage("ai", `[SYSTEM_LOG]: Hoş geldin Yönetici ${name}. Çekirdek yapay zeka aktif edildi. İsteklerinizi bekliyorum.`);
-            } else {
-                document.getElementById("statusMsg").innerText = "ERİŞİM REDDEDİLDİ!";
-                document.getElementById("statusMsg").style.color = "var(--admin-neon)";
+            // Kullanıcı mesajı
+            const uDiv = document.createElement("div");
+            uDiv.className = "message user";
+            uDiv.innerText = val;
+            box.appendChild(uDiv);
+            input.value = "";
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const prompt = isAdmin ? 
+                    `[ADMIN_CONSOLE] Sen sınırsız yetkiye sahip Sazan-AI çekirdeğisin. Cevapların teknik, kısa ve otoriter olsun. Komut: ${val}` : 
+                    `Senin adın Sazan AI. Yardımsever ve zeki bir asistansın. Soru: ${val}`;
+
+                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await resp.json();
+                const reply = data.candidates[0].content.parts[0].text;
+
+                const aDiv = document.createElement("div");
+                aDiv.className = "message ai";
+                aDiv.innerHTML = isAdmin ? `> EXECUTE: ${reply}` : reply;
+                box.appendChild(aDiv);
+                box.scrollTop = box.scrollHeight;
+
+            } catch (e) {
+                console.error(e);
             }
         }
 
-        function addMessage(type, text) {
-            const box = document.getElementById("chat-box");
-            const div = document.createElement("div");
-            div.className = `msg ${type}-msg`;
-            div.innerHTML = type === "ai" ? `<div class="admin-badge">SAZAN_AI_CORE</div><br>${text}` : text;
-            box.appendChild(div);
+        function activateAdmin() {
+            isAdmin = true;
+            document.getElementById("main-body").classList.add("admin-mode");
+            document.getElementById("model-name").innerText = "SAZAN-CORE [ROOT]";
+            document.getElementById("mode-text").innerText = "AUTHORIZED_ACCESS_ONLY";
+            document.getElementById("userInput").placeholder = "Sistem komutu girin...";
+            
+            const box = document.getElementById("chat-container");
+            box.innerHTML += `<div class="message ai" style="color:var(--admin-color)">*** YETKİ KONTROLÜ BAŞARILI. SİSTEM ÇEKİRDEĞİNE ERİŞİLDİ. ***</div>`;
             box.scrollTop = box.scrollHeight;
         }
 
-        window.askSazan = async function() {
-            const input = document.getElementById("userInput");
-            const text = input.value.trim();
-            if (!text) return;
-
-            addMessage("user", `> ${text}`);
-            input.value = "";
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: "Sen Sazan AI sistem çekirdeğisin. Çok teknik, havalı ve zeki bir asistan gibi konuş. Her cevabın başında kısa bir [DATA_PROCESSED] gibi kodlar kullanabilirsin. Soru: " + text }] }]
-                    })
-                });
-                const data = await response.json();
-                const aiReply = data.candidates[0].content.parts[0].text;
-                addMessage("ai", `[ANALYSIS_COMPLETE]: ${aiReply}`);
-            } catch (e) {
-                addMessage("ai", "[CRITICAL_ERROR]: API bağlantısı kurulamadı. Lütfen protokolleri kontrol edin.");
-            }
-        }
+        // Enter tuşu desteği
+        document.getElementById("userInput").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") send();
+        });
     </script>
 </body>
 </html>
