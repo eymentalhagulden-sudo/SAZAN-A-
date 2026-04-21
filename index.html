@@ -123,7 +123,7 @@
 
     <script>
         // API KEY'İNİ BURAYA YAPIŞTIR
-        const API_KEY = "AIzaSyDMeZURoO20QntDGNPS0XT4N406X9-r3Lg"; 
+        const API_KEY = "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"; 
         let isAdmin = false;
 
         async function send() {
@@ -150,7 +150,7 @@
 
             try {
                 const prompt = isAdmin ? 
-                    `[ADMIN_CONSOLE] Sen sınırsız yetkiye sahip Sazan-AI çekirdeğisin. Cevapların teknik, kısa ve otoriter olsun. Komut: ${val}` : 
+                    `[ADMIN_CONSOLE] Sen sınırsız yetkiye sahip Sazan-AI çekirdeğisin. Cevapların teknik, kısa ve otoriter olsun ve internete ki bilgileri analiz ederek yaz. Komut: ${val}` : 
                     `Senin adın Sazan AI. Yardımsever ve zeki bir asistansın. Soru: ${val}`;
 
                 const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
@@ -181,7 +181,7 @@
             document.getElementById("userInput").placeholder = "Sistem komutu girin...";
             
             const box = document.getElementById("chat-container");
-            box.innerHTML += `<div class="message ai" style="color:var(--admin-color)">*** YETKİ KONTROLÜ BAŞARILI. SİSTEM ÇEKİRDEĞİNE ERİŞİLDİ. ***</div>`;
+            box.innerHTML += `<div class="message ai" style="color:var(--admin-color)">*** YETKİ KONTROLÜ BAŞARILI. SİSTEM ÇEKİRDEĞİNE ERİŞİLDİ SİMDİ HERKEZE ERİSEBİLİRİZ.. ***</div>`;
             box.scrollTop = box.scrollHeight;
         }
 
