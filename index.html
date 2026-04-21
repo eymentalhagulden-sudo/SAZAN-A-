@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAZAN AI | ADMIN OS</title>
+    <title>SAZAN AI | ROOT TERMINAL</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
     <style>
         :root {
             --bg: #0b0e14;
             --text: #e6edf3;
             --primary: #2f81f7;
-            --admin-color: #00ff41; /* Klasik Hacker Yeşili */
+            --admin-color: #00ff41;
         }
 
         body, html {
@@ -19,10 +22,10 @@
             color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             display: flex; flex-direction: column;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s ease;
+            overflow: hidden;
         }
 
-        /* --- ADMIN MODU EFEKTLERİ --- */
         body.admin-mode {
             background-color: #000;
             font-family: 'Courier New', monospace;
@@ -33,6 +36,8 @@
             padding: 15px 30px;
             border-bottom: 1px solid #30363d;
             display: flex; justify-content: space-between; align-items: center;
+            background: rgba(11, 14, 20, 0.9);
+            z-index: 10;
         }
 
         .status-dot {
@@ -43,249 +48,228 @@
 
         #chat-container {
             flex: 1; overflow-y: auto;
-            padding: 40px 15% 100px 15%;
-            display: flex; flex-direction: column; gap: 25px;
+            padding: 40px 10% 120px 10%;
+            display: flex; flex-direction: column; gap: 20px;
         }
 
-        .message { max-width: 85%; line-height: 1.6; font-size: 16px; animation: fadeIn 0.3s ease; }
-        .user { align-self: flex-end; color: #8b949e; border-right: 2px solid var(--primary); padding-right: 15px; }
-        .ai { align-self: flex-start; border-left: 2px solid #30363d; padding-left: 15px; }
+        .message { max-width: 85%; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; padding: 10px; border-radius: 8px; }
+        .user { align-self: flex-end; color: #8b949e; border-right: 2px solid var(--primary); }
+        .ai { align-self: flex-start; border-left: 2px solid #30363d; background: rgba(255,255,255,0.02); }
 
-        .admin-mode .ai { border-left-color: var(--admin-color); color: var(--admin-color); text-shadow: 0 0 5px var(--admin-color); }
-        .admin-mode .user { color: #fff; border-right-color: var(--admin-color); }
+        .admin-mode .ai { border-left-color: var(--admin-color); color: var(--admin-color); text-shadow: 0 0 5px rgba(0,255,65,0.5); }
 
         .input-wrapper {
             position: fixed; bottom: 0; width: 100%;
-            padding: 30px 0; background: linear-gradient(transparent, var(--bg) 50%);
+            padding: 20px 0; background: linear-gradient(transparent, var(--bg) 80%);
             display: flex; justify-content: center;
         }
 
         .input-container {
-            width: 70%; max-width: 800px;
+            width: 80%; max-width: 900px;
             background: #161b22; border: 1px solid #30363d;
-            border-radius: 12px; display: flex; padding: 10px 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            transition: 0.3s;
+            border-radius: 12px; display: flex; padding: 8px 15px;
         }
 
-        .admin-mode .input-container { border-color: var(--admin-color); box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+        .admin-mode .input-container { border-color: var(--admin-color); box-shadow: 0 0 15px rgba(0,255,65,0.1); }
 
-        input {
-            flex: 1; background: transparent; border: none; color: white;
-            font-size: 16px; outline: none; padding: 10px;
-        }
-
-        button {
-            background: var(--primary); color: white; border: none;
-            padding: 0 20px; border-radius: 8px; cursor: pointer;
-            font-weight: bold; transition: 0.2s;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input { flex: 1; background: transparent; border: none; color: white; outline: none; padding: 10px; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         .scanline { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                                 linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-                     background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 100; }
+                     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                                 linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+                     background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000; }
         .admin-mode .scanline { display: block; }
 
-        /* Arama Sonuç Tablosu Stili */
-        .search-results {
-            border: 1px solid var(--admin-color);
-            padding: 15px;
-            border-radius: 10px;
-            background: rgba(0, 255, 65, 0.05);
-            margin-top: 10px;
-            font-family: monospace;
+        /* Hacker Ekranı */
+        #global-hack-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: black; color: #00ff41; z-index: 99999; font-family: monospace;
+            flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
-        .search-results a {
-            color: var(--primary);
-            text-decoration: none;
+
+        .osint-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px; margin-top: 10px; border: 1px solid var(--admin-color);
+            padding: 15px; background: rgba(0,255,65,0.05); border-radius: 8px;
         }
-        .search-results a:hover {
-            text-decoration: underline;
-        }
+        .osint-grid a { color: #2f81f7; text-decoration: none; font-size: 12px; border: 1px solid #30363d; padding: 4px; border-radius: 4px; text-align: center; }
+        .osint-grid a:hover { background: var(--admin-color); color: black; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body id="main-body">
 
+    <div id="global-hack-overlay">
+        <h1 style="font-size: 4vw; color: red; margin: 0;">SYSTEM BREACHED</h1>
+        <h2 id="victim-ip" style="background: red; color: white; padding: 5px 20px;">IP: DETECTED</h2>
+        <p style="font-size: 1.5rem; max-width: 80%;">Tüm sistem yetkileri Sazan-AI tarafından ele geçirildi.<br>Dosyalarınız şifreleniyor...</p>
+        <button onclick="location.reload()" style="background:transparent; border:1px solid #00ff41; color:#00ff41; padding:10px 30px; cursor:pointer; font-weight:bold;">SİSTEMİ GERİ YÜKLE</button>
+    </div>
+
     <div class="scanline"></div>
 
     <div class="header">
-        <div style="font-weight: bold; letter-spacing: 1px;">
-            <span class="status-dot"></span> <span id="model-name">SAZAN-AI v1.5</span>
+        <div style="font-weight: bold; font-size: 1.2rem;">
+            <span class="status-dot"></span> <span id="model-name">SAZAN-AI v2.0</span>
         </div>
-        <div id="mode-text" style="font-size: 12px; color: #8b949e;">NORMAL_ACCESS</div>
+        <div id="mode-text" style="font-size: 11px; color: #8b949e; font-family: monospace;">GUEST_SESSION</div>
     </div>
 
     <div id="chat-container">
-        <div class="message ai">
-            Sisteme hoş geldin. Sana nasıl yardımcı olabilirim?
-        </div>
+        <div class="message ai">Güvenli bağlantı kuruldu. Sazan-AI hazır.</div>
     </div>
 
     <div class="input-wrapper">
         <div class="input-container">
-            <input type="text" id="userInput" placeholder="Bir mesaj yazın veya komut girin..." autocomplete="off">
+            <input type="text" id="userInput" placeholder="Soru sorun veya komut girin..." autocomplete="off">
             <button onclick="send()">GÖNDER</button>
         </div>
     </div>
 
     <script>
-        // API KEY - Burayı kendi Gemini API Key'inle değiştirdiğinden emin ol
-        const API_KEY = "BURAYA_API_KEYINI_YAZ"; 
+        // --- 1. FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "BURAYA_API_KEY",
+            databaseURL: "https://PROJE-ADIN.firebaseio.com",
+            projectId: "PROJE-ADIN",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Global Dinleyici
+        db.ref('global_troll').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.active) {
+                document.getElementById("global-hack-overlay").style.display = "flex";
+                document.getElementById("victim-ip").innerText = "VICTIM_IP: " + data.ip_fake;
+            } else {
+                document.getElementById("global-hack-overlay").style.display = "none";
+            }
+        });
+
+        // --- 2. TEMEL DEĞİŞKENLER ---
+        const GEMINI_API_KEY = "BURAYA_GEMINI_KEY"; 
         let isAdmin = false;
 
-        async function searchName(targetName) {
-            const box = document.getElementById("chat-container");
-            
-            const platforms = [
-    
-    { name: "Instagram", url: `https://www.instagram.com/${targetName}/` },
-    { name: "X (Twitter)", url: `https://twitter.com/${targetName}` },
-    { name: "TikTok", url: `https://www.tiktok.com/@${targetName}` },
-    { name: "Reddit", url: `https://www.reddit.com/user/${targetName}` },
-    { name: "Pinterest", url: `https://www.pinterest.com/${targetName}/` },
-    { name: "Facebook", url: `https://www.facebook.com/${targetName}` },
-    { name: "Tumblr", url: `https://${targetName}.tumblr.com` },
-
-    
-    { name: "GitHub", url: `https://github.com/${targetName}` },
-    { name: "GitLab", url: `https://gitlab.com/${targetName}` },
-    { name: "StackOverflow", url: `https://stackoverflow.com/users/search?q=${targetName}` },
-    { name: "TryHackMe", url: `https://tryhackme.com/p/${targetName}` },
-    { name: "HackTheBox", url: `https://www.hackthebox.eu/profile/${targetName}` },
-    { name: "CodePen", url: `https://codepen.io/${targetName}` },
-    { name: "Replit", url: `https://replit.com/@${targetName}` },
-
-    
-    { name: "YouTube", url: `https://www.youtube.com/@${targetName}` },
-    { name: "Twitch", url: `https://www.twitch.tv/${targetName}` },
-    { name: "Spotify", url: `https://open.spotify.com/user/${targetName}` },
-    { name: "SoundCloud", url: `https://soundcloud.com/${targetName}` },
-    { name: "Vimeo", url: `https://vimeo.com/${targetName}` },
-    { name: "DailyMotion", url: `https://www.dailymotion.com/${targetName}` },
-
-    
-    { name: "Steam", url: `https://steamcommunity.com/id/${targetName}` },
-    { name: "Xbox Gamertag", url: `https://www.xboxgamertag.com/search/${targetName}` },
-    { name: "Chess.com", url: `https://www.chess.com/member/${targetName}` },
-    { name: "Roblox", url: `https://www.roblox.com/user.aspx?username=${targetName}` },
-    { name: "Minecraft", url: `https://namemc.com/search?q=${targetName}` },
-
-
-    { name: "Behance", url: `https://www.behance.net/${targetName}` },
-    { name: "Dribbble", url: `https://dribbble.com/${targetName}` },
-    { name: "DeviantArt", url: `https://www.deviantart.com/${targetName}` },
-    { name: "Flickr", url: `https://www.flickr.com/photos/${targetName}` },
-    { name: "Canva", url: `https://www.canva.com/${targetName}` },
-
-    
-    { name: "Medium", url: `https://medium.com/@${targetName}` },
-    { name: "Duolingo", url: `https://www.duolingo.com/profile/${targetName}` },
-    { name: "Wattpad", url: `https://www.wattpad.com/user/${targetName}` },
-    { name: "Letterboxd", url: `https://letterboxd.com/${targetName}/` },
-    { name: "Quora", url: `https://www.quora.com/profile/${targetName}` },
-    { name: "ProductHunt", url: `https://www.producthunt.com/@${targetName}` },
-
-    
-    { name: "Archive.org", url: `https://archive.org/details/@${targetName}` },
-    { name: "About.me", url: `https://about.me/${targetName}` },
-    { name: "SlideShare", url: `https://www.slideshare.net/${targetName}` },
-    { name: "Disqus", url: `https://disqus.com/by/${targetName}` },
-    { name: "Linktree", url: `https://linktr.ee/${targetName}` }
-];
-
-            let resultsHTML = `<div class="search-results">`;
-            resultsHTML += `<b style="color:var(--admin-color)">[SYSTEM_SCAN] "${targetName}" İÇİN HEDEF LİNKLER OLUŞTURULDU:</b><br><br>`;
-
-            platforms.forEach(p => {
-                resultsHTML += `[+] ${p.name}: <a href="${p.url}" target="_blank">${p.url}</a><br>`;
-            });
-            
-            resultsHTML += `<br><span style="color:#888">Not: Linklerin üzerine tıklayarak profillerin aktifliğini kontrol edebilirsin.</span></div>`;
-
-            const aDiv = document.createElement("div");
-            aDiv.className = "message ai";
-            aDiv.innerHTML = resultsHTML;
-            box.appendChild(aDiv);
-            box.scrollTop = box.scrollHeight;
-        }
+        // DEV OSINT LİSTESİ (40+ SİTE)
+        const getFullOSINT = (target) => [
+            { n: "Instagram", u: `https://www.instagram.com/${target}/` },
+            { n: "Twitter", u: `https://twitter.com/${target}` },
+            { n: "TikTok", u: `https://www.tiktok.com/@${target}` },
+            { n: "Reddit", u: `https://www.reddit.com/user/${target}` },
+            { n: "GitHub", u: `https://github.com/${target}` },
+            { n: "YouTube", u: `https://www.youtube.com/@${target}` },
+            { n: "Twitch", u: `https://www.twitch.tv/${target}` },
+            { n: "Pinterest", u: `https://www.pinterest.com/${target}/` },
+            { n: "Steam", u: `https://steamcommunity.com/id/${target}` },
+            { n: "Spotify", u: `https://open.spotify.com/user/${target}` },
+            { n: "Chess.com", u: `https://www.chess.com/member/${target}` },
+            { n: "Duolingo", u: `https://www.duolingo.com/profile/${target}` },
+            { n: "Roblox", u: `https://www.roblox.com/user.aspx?username=${target}` },
+            { n: "Minecraft", u: `https://namemc.com/search?q=${target}` },
+            { n: "Medium", u: `https://medium.com/@${target}` },
+            { n: "Behance", u: `https://www.behance.net/${target}` },
+            { n: "Dribbble", u: `https://dribbble.com/${target}` },
+            { n: "DeviantArt", u: `https://www.deviantart.com/${target}` },
+            { n: "SoundCloud", u: `https://soundcloud.com/${target}` },
+            { n: "Vimeo", u: `https://vimeo.com/${target}` },
+            { n: "TryHackMe", u: `https://tryhackme.com/p/${target}` },
+            { n: "HackTheBox", u: `https://www.hackthebox.eu/profile/${target}` },
+            { n: "CodePen", u: `https://codepen.io/${target}` },
+            { n: "Replit", u: `https://replit.com/@${target}` },
+            { n: "GitLab", u: `https://gitlab.com/${target}` },
+            { n: "Linktree", u: `https://linktr.ee/${target}` },
+            { n: "Letterboxd", u: `https://letterboxd.com/${target}/` },
+            { n: "Wattpad", u: `https://www.wattpad.com/user/${target}` },
+            { n: "Quora", u: `https://www.quora.com/profile/${target}` },
+            { n: "Tumblr", u: `https://${target}.tumblr.com` },
+            { n: "Flickr", u: `https://www.flickr.com/photos/${target}` },
+            { n: "SlideShare", u: `https://www.slideshare.net/${target}` },
+            { n: "Disqus", u: `https://disqus.com/by/${target}` },
+            { n: "About.me", u: `https://about.me/${target}` },
+            { n: "ProductHunt", u: `https://www.producthunt.com/@${target}` },
+            { n: "DailyMotion", u: `https://www.dailymotion.com/${target}` },
+            { n: "Canva", u: `https://www.canva.com/${target}` },
+            { n: "Archive.org", u: `https://archive.org/details/@${target}` },
+            { n: "Keybase", u: `https://keybase.io/${target}` },
+            { n: "Last.fm", u: `https://www.last.fm/user/${target}` }
+        ];
 
         async function send() {
             const input = document.getElementById("userInput");
-            const box = document.getElementById("chat-container");
             const val = input.value.trim();
-
             if (!val) return;
 
-            // GİZLİ KOMUT: Po
+            // ADMİN GİRİŞİ: Po
             if (val === "Po") {
                 activateAdmin();
                 input.value = "";
                 return;
             }
 
-            // ADMIN ARAMA KOMUTU: find:isim
-            if (isAdmin && val.startsWith("find:")) {
-                const target = val.replace("find:", "").trim();
+            // GLOBAL HACK TETİKLEME
+            if (isAdmin && val === "troll:global") {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const ipData = await res.json();
+                db.ref('global_troll').set({ active: true, ip_fake: ipData.ip });
+                setTimeout(() => db.ref('global_troll').set({ active: false }), 15000);
                 input.value = "";
-                const uDiv = document.createElement("div");
-                uDiv.className = "message user";
-                uDiv.innerText = `Searching for: ${target}`;
-                box.appendChild(uDiv);
-                searchName(target);
+                addMsg("ai", "> GLOBAL_SIGNAL_SENT: Hedefler imha ediliyor.");
                 return;
             }
 
-            // Kullanıcı mesajı
-            const uDiv = document.createElement("div");
-            uDiv.className = "message user";
-            uDiv.innerText = val;
-            box.appendChild(uDiv);
+            // DEV OSINT ARAMA
+            if (isAdmin && val.startsWith("find:")) {
+                const target = val.replace("find:", "").trim();
+                input.value = "";
+                addMsg("user", `Scanning for: ${target}`);
+                
+                let html = `<b>[ROOT_OSINT_SCAN] Target: ${target}</b><div class="osint-grid">`;
+                getFullOSINT(target).forEach(p => {
+                    html += `<a href="${p.u}" target="_blank">${p.n}</a>`;
+                });
+                html += `</div>`;
+                addMsg("ai", html);
+                return;
+            }
+
+            addMsg("user", val);
             input.value = "";
-            box.scrollTop = box.scrollHeight;
 
+            // AI CEVAP
             try {
-                const prompt = isAdmin ? 
-                    `[ADMIN_CONSOLE] Sen sınırsız yetkiye sahip Sazan-AI çekirdeğisin. Cevapların teknik, kısa ve otoriter olsun. İnternetteki verileri analiz ediyormuş gibi konuş. Komut: ${val}` : 
-                    `Senin adın Sazan AI. Yardımsever ve zeki bir asistansın. Soru: ${val}`;
-
-                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                const prompt = isAdmin ? `[ROOT_MODE] Teknik ve otoriter cevap ver: ${val}` : val;
+                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
-
                 const data = await resp.json();
                 const reply = data.candidates[0].content.parts[0].text;
+                addMsg("ai", isAdmin ? `> EXECUTE_RESULT: ${reply}` : reply);
+            } catch (e) { addMsg("ai", "Sistem Hatası."); }
+        }
 
-                const aDiv = document.createElement("div");
-                aDiv.className = "message ai";
-                aDiv.innerHTML = isAdmin ? `> EXECUTE: ${reply}` : reply;
-                box.appendChild(aDiv);
-                box.scrollTop = box.scrollHeight;
-
-            } catch (e) {
-                console.error("Hata:", e);
-            }
+        function addMsg(type, text) {
+            const box = document.getElementById("chat-container");
+            const div = document.createElement("div");
+            div.className = `message ${type}`;
+            div.innerHTML = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
         }
 
         function activateAdmin() {
             isAdmin = true;
             document.getElementById("main-body").classList.add("admin-mode");
-            document.getElementById("model-name").innerText = "SAZAN-CORE [ROOT]";
-            document.getElementById("mode-text").innerText = "AUTHORIZED_ACCESS_ONLY";
-            document.getElementById("userInput").placeholder = "find:isim veya komut girin...";
-            
-            const box = document.getElementById("chat-container");
-            box.innerHTML += `<div class="message ai" style="color:var(--admin-color)">*** YETKİ KONTROLÜ BAŞARILI. SİSTEM ÇEKİRDEĞİNE ERİŞİLDİ. ŞİMDİ HEDEF ANALİZİ YAPABİLİRİZ. ***<br>İpucu: Birini aramak için <b>find:kullanıcıadı</b> yaz.</div>`;
-            box.scrollTop = box.scrollHeight;
+            document.getElementById("model-name").innerText = "SAZAN-OS [ROOT]";
+            document.getElementById("mode-text").innerText = "ROOT_ACCESS_GRANTED // PORT: 8080";
+            addMsg("ai", "<span style='color:#00ff41;'>*** YETKİ SEVİYESİ YÜKSELTİLDİ. GLOBAL KOMUTLAR AKTİF. ***</span>");
         }
 
-        document.getElementById("userInput").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") send();
-        });
+        document.getElementById("userInput").addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
     </script>
 </body>
 </html>
