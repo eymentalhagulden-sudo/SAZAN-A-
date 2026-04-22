@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAZAN AI | ROOT TERMINAL</title>
+    <title>SAZAN AI | THE COLLECTOR v4.5</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
@@ -13,6 +13,7 @@
             --text: #e6edf3;
             --primary: #2f81f7;
             --admin-color: #00ff41;
+            --danger: #ff0000;
         }
 
         body, html {
@@ -20,235 +21,183 @@
             height: 100%; width: 100%;
             background-color: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-family: 'Courier New', monospace;
             display: flex; flex-direction: column;
             transition: all 0.5s ease;
             overflow: hidden;
         }
 
-        body.admin-mode {
-            background-color: #000;
-            font-family: 'Courier New', monospace;
-            --primary: var(--admin-color);
-        }
+        body.admin-mode { background-color: #000; }
 
-        /* MATRIX CANVAS */
-        #matrix-canvas {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1; display: none;
-        }
+        /* MATRIX & BREACH */
+        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: none; }
         .admin-mode #matrix-canvas { display: block; }
+        #breach-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,0,0,0.3); display: none; z-index: 999; justify-content: center; align-items: center; font-size: 4rem; color: white; text-shadow: 0 0 20px red; pointer-events: none; }
+        .breach-flash { animation: flash 0.15s infinite; }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* VPN PANEL */
-        #vpn-panel {
-            position: fixed; top: 70px; left: 20px;
-            background: rgba(0, 20, 0, 0.9);
-            border: 1px solid var(--admin-color);
-            padding: 10px; border-radius: 8px;
-            display: none; z-index: 100;
-            font-size: 11px; color: var(--admin-color);
-            box-shadow: 0 0 15px rgba(0,255,65,0.2);
-        }
+        /* PANELS */
+        #vpn-panel { position: fixed; top: 70px; left: 20px; background: rgba(0, 15, 0, 0.95); border: 1px solid var(--admin-color); padding: 12px; border-radius: 8px; display: none; z-index: 100; font-size: 11px; color: var(--admin-color); width: 220px; }
         .admin-mode #vpn-panel { display: block; }
-        .vpn-btn {
-            background: transparent; border: 1px solid var(--admin-color);
-            color: var(--admin-color); padding: 5px 10px; cursor: pointer;
-            margin-top: 5px; font-size: 10px; width: 100%;
-        }
-        .vpn-btn:hover { background: var(--admin-color); color: black; }
+        .cyber-btn { background: transparent; border: 1px solid var(--admin-color); color: var(--admin-color); padding: 6px; cursor: pointer; margin-top: 8px; font-size: 10px; width: 100%; font-family: monospace; transition: 0.3s; }
+        .cyber-btn:hover { background: var(--admin-color); color: black; box-shadow: 0 0 10px var(--admin-color); }
 
-        .header {
-            padding: 15px 30px; border-bottom: 1px solid #30363d;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(11, 14, 20, 0.9); z-index: 10;
-        }
-
-        .status-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background: #238636; display: inline-block; margin-right: 5px;
-            box-shadow: 0 0 10px #238636;
-        }
-
-        #chat-container {
-            flex: 1; overflow-y: auto;
-            padding: 40px 10% 120px 10%;
-            display: flex; flex-direction: column; gap: 20px;
-            transition: 0.5s; position: relative;
-        }
-
+        /* CHAT */
+        .header { padding: 15px 30px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: rgba(11, 14, 20, 0.98); z-index: 10; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 30px 10% 120px 10%; display: flex; flex-direction: column; gap: 20px; }
         .admin-mode #chat-container { margin-right: 320px; }
+        .message { max-width: 85%; line-height: 1.6; font-size: 14px; padding: 12px; border-radius: 8px; animation: fadeIn 0.3s ease; }
+        .user { align-self: flex-end; border-right: 3px solid var(--primary); background: rgba(47, 129, 247, 0.05); }
+        .ai { align-self: flex-start; border-left: 3px solid #333; background: rgba(255,255,255,0.02); }
+        .admin-mode .ai { border-left-color: var(--admin-color); color: var(--admin-color); box-shadow: inset 0 0 10px rgba(0,255,65,0.05); }
 
-        .message { max-width: 85%; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; padding: 10px; border-radius: 8px; }
-        .user { align-self: flex-end; color: #8b949e; border-right: 2px solid var(--primary); }
-        .ai { align-self: flex-start; border-left: 2px solid #30363d; background: rgba(255,255,255,0.02); }
-        .admin-mode .ai { border-left-color: var(--admin-color); color: var(--admin-color); text-shadow: 0 0 5px rgba(0,255,65,0.5); }
+        /* FIND: SYSTEM (THE HEART) */
+        .id-card { border: 1px solid var(--admin-color); background: rgba(0, 255, 65, 0.1); padding: 15px; border-radius: 8px; display: flex; gap: 15px; margin-bottom: 10px; }
+        .osint-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 5px; border: 1px solid var(--admin-color); padding: 10px; max-height: 350px; overflow-y: auto; background: rgba(0,0,0,0.8); }
+        .osint-grid a { color: var(--admin-color); text-decoration: none; font-size: 9px; border: 1px solid rgba(0, 255, 65, 0.2); padding: 4px; text-align: center; background: #000; }
+        .osint-grid a:hover { border-color: var(--admin-color); background: rgba(0,255,65,0.1); }
+        .category-label { font-size: 10px; color: #aaa; margin: 10px 0 5px 0; text-transform: uppercase; border-bottom: 1px solid #333; }
 
-        /* OSINT & ID CARD */
-        .id-card {
-            border: 1px solid var(--admin-color); background: rgba(0, 255, 65, 0.1);
-            padding: 15px; border-radius: 8px; display: flex; gap: 15px; margin-bottom: 10px;
-        }
-        .id-avatar { width: 60px; height: 60px; border: 1px solid var(--admin-color); background: #000; display: flex; align-items: center; justify-content: center; font-size: 30px; }
-        .id-info { font-size: 12px; line-height: 1.4; }
-        .id-info b { color: var(--admin-color); }
+        /* PROGRESS BAR */
+        .progress-container { width: 100%; background: #111; border: 1px solid var(--admin-color); margin-top: 10px; height: 15px; position: relative; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: var(--admin-color); transition: width 0.2s; }
+        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 9px; color: #fff; mix-blend-mode: difference; line-height: 15px; }
 
-        .fake-map {
-            width: 100%; height: 180px; background: #001100; margin: 10px 0;
-            border: 1px solid var(--admin-color); position: relative; overflow: hidden;
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg');
-            background-size: cover; opacity: 0.6; border-radius: 8px;
-        }
-        .map-ping { position: absolute; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 15px #ff0000; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
-
-        .osint-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-            gap: 6px; margin-top: 15px; border: 1px solid var(--admin-color);
-            padding: 10px; background: rgba(0,255,65,0.05); border-radius: 8px; max-height: 300px; overflow-y: auto;
-        }
-        .osint-grid a { color: var(--admin-color); text-decoration: none; font-size: 9px; border: 1px solid rgba(0, 255, 65, 0.3); padding: 4px; border-radius: 4px; text-align: center; background: rgba(0,0,0,0.5); }
-        .osint-grid a:hover { background: var(--admin-color); color: black; }
-
-        .input-wrapper { position: fixed; bottom: 0; width: 100%; padding: 20px 0; background: linear-gradient(transparent, var(--bg) 80%); display: flex; justify-content: center; }
-        .input-container { width: 80%; max-width: 900px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; display: flex; padding: 8px 15px; }
-        input { flex: 1; background: transparent; border: none; color: white; outline: none; padding: 10px; font-size: 16px; }
-        button { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-
-        #admin-sidebar { position: fixed; right: -320px; top: 0; width: 300px; height: 100vh; background: rgba(0, 5, 0, 0.95); border-left: 2px solid var(--admin-color); transition: 0.5s; padding: 20px; box-sizing: border-box; z-index: 50; color: var(--admin-color); font-size: 12px; }
+        /* SIDEBAR */
+        #admin-sidebar { position: fixed; right: -320px; top: 0; width: 300px; height: 100vh; background: rgba(0, 5, 0, 0.98); border-left: 2px solid var(--admin-color); transition: 0.5s; padding: 20px; z-index: 50; color: var(--admin-color); }
         .admin-mode #admin-sidebar { right: 0; }
-        .log-box { font-size: 10px; height: 85%; overflow-y: auto; border-top: 1px solid var(--admin-color); padding-top: 10px; }
+        .log-box { font-size: 10px; height: 85%; overflow-y: auto; margin-top: 10px; border-top: 1px solid var(--admin-color); padding-top: 10px; scroll-behavior: smooth; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .input-wrapper { position: fixed; bottom: 0; width: 100%; padding: 20px 0; background: linear-gradient(transparent, var(--bg) 90%); display: flex; justify-content: center; }
+        .input-container { width: 80%; max-width: 900px; background: #161b22; border: 1px solid #333; border-radius: 12px; display: flex; padding: 8px 15px; }
+        .admin-mode .input-container { border-color: var(--admin-color); box-shadow: 0 0 15px rgba(0,255,65,0.1); }
+        input { flex: 1; background: transparent; border: none; color: white; outline: none; padding: 10px; font-family: 'Courier New', monospace; font-size: 15px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body id="main-body">
 
+    <div id="breach-overlay">BREACH DETECTED</div>
     <canvas id="matrix-canvas"></canvas>
 
     <div id="vpn-panel">
-        <div><b>VPN STATUS:</b> <span id="vpn-stat" style="color:red">OFFLINE</span></div>
-        <button class="vpn-btn" onclick="toggleVPN()">ESTABLISH TUNNEL</button>
+        <div><b>TUNNEL:</b> <span id="vpn-stat" style="color:red">OFFLINE</span></div>
+        <button class="cyber-btn" onclick="toggleVPN()">ESTABLISH SECURE LINK</button>
+        <div id="dl-area" style="display:none; margin-top:10px; border-top:1px solid #0f0; padding-top:5px;">
+            <div id="dl-label" style="font-size:9px;">Ready to sniff packets...</div>
+            <div class="progress-container"><div id="p-bar" class="progress-bar"></div><div id="p-text" class="progress-text">0%</div></div>
+        </div>
     </div>
 
     <div id="admin-sidebar">
-        <div style="font-weight: bold; margin-bottom: 10px;">SYSTEM LOGS</div>
+        <div style="letter-spacing: 2px;"><b>S.Y.S.T.E.M L.O.G.S</b></div>
         <div id="log-box" class="log-box"></div>
     </div>
 
     <div class="header">
-        <div style="font-weight: bold; font-size: 1.2rem;">
-            <span class="status-dot"></span> <span id="model-name">SAZAN-AI v2.0</span>
-        </div>
-        <div id="mode-text" style="font-size: 11px; color: #8b949e; font-family: monospace;">GUEST_SESSION</div>
+        <div><span style="width:10px; height:10px; background:#238636; border-radius:50%; display:inline-block; box-shadow:0 0 5px #238636;"></span> <b>SAZAN-AI v4.5</b></div>
+        <div id="mode-text" style="font-size: 10px; color: #8b949e;">GUEST_MODE</div>
     </div>
 
     <div id="chat-container">
-        <div class="message ai">Güvenli bağlantı kuruldu. Sazan-AI hazır.</div>
+        <div class="message ai">Terminal hazır. find:[username] veya root yetkisi için "Po" yazın.</div>
     </div>
 
     <div class="input-wrapper">
         <div class="input-container">
-            <input type="text" id="userInput" placeholder="Soru sorun veya komut girin..." autocomplete="off">
-            <button onclick="send()">GÖNDER</button>
+            <input type="text" id="userInput" placeholder="root@sazan:~$ " autocomplete="off">
+            <button onclick="send()" style="background:none; border:1px solid var(--admin-color); color:var(--admin-color); padding:0 15px; border-radius:5px; cursor:pointer;">RUN</button>
         </div>
     </div>
 
     <script>
-        const firebaseConfig = { apiKey: "BURAYA_API_KEY", databaseURL: "https://PROJE-ADIN.firebaseio.com", projectId: "PROJE-ADIN" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         const GEMINI_API_KEY = "BURAYA_GEMINI_KEY"; 
         let isAdmin = false;
 
-        const accessSound = new Audio('https://www.soundjay.com/buttons/sounds/button-10.mp3');
-        const typeSound = new Audio('https://www.soundjay.com/communication/sounds/typewriter-key-1.mp3');
+        const alertSound = new Audio('https://www.soundjay.com/misc/sounds/fail-buzzer-04.mp3');
 
         function toggleVPN() {
-            const stat = document.getElementById("vpn-stat");
-            stat.innerText = "CONNECTING..."; stat.style.color = "yellow";
-            setTimeout(() => {
-                stat.innerText = "ENCRYPTED"; stat.style.color = "#00ff41";
-                addMsg("ai", "> VPN: Connection established via Moscow, RU. AES-256-GCM Active.");
-            }, 1500);
+            const s = document.getElementById("vpn-stat");
+            s.innerText = "BYPASSING..."; s.style.color = "yellow";
+            setTimeout(() => { s.innerText = "PROTECTED"; s.style.color = "#0f0"; }, 1500);
         }
 
-        // --- DEV OSINT LISTESİ (40 SİTE) ---
-        const getFullOSINT = (target) => [
-            { n: "Instagram", u: `https://www.instagram.com/${target}/` },
-            { n: "Twitter", u: `https://twitter.com/${target}` },
-            { n: "TikTok", u: `https://www.tiktok.com/@${target}` },
-            { n: "Reddit", u: `https://www.reddit.com/user/${target}` },
-            { n: "GitHub", u: `https://github.com/${target}` },
-            { n: "YouTube", u: `https://www.youtube.com/@${target}` },
-            { n: "Twitch", u: `https://www.twitch.tv/${target}` },
-            { n: "Pinterest", u: `https://www.pinterest.com/${target}/` },
-            { n: "Steam", u: `https://steamcommunity.com/id/${target}` },
-            { n: "Spotify", u: `https://open.spotify.com/user/${target}` },
-            { n: "Chess.com", u: `https://www.chess.com/member/${target}` },
-            { n: "Duolingo", u: `https://www.duolingo.com/profile/${target}` },
-            { n: "Roblox", u: `https://www.roblox.com/user.aspx?username=${target}` },
-            { n: "Minecraft", u: `https://namemc.com/search?q=${target}` },
-            { n: "Medium", u: `https://medium.com/@${target}` },
-            { n: "Behance", u: `https://www.behance.net/${target}` },
-            { n: "Dribbble", u: `https://dribbble.com/${target}` },
-            { n: "DeviantArt", u: `https://www.deviantart.com/${target}` },
-            { n: "SoundCloud", u: `https://soundcloud.com/${target}` },
-            { n: "Vimeo", u: `https://vimeo.com/${target}` },
-            { n: "TryHackMe", u: `https://tryhackme.com/p/${target}` },
-            { n: "HackTheBox", u: `https://www.hackthebox.eu/profile/${target}` },
-            { n: "CodePen", u: `https://codepen.io/${target}` },
-            { n: "Replit", u: `https://replit.com/@${target}` },
-            { n: "GitLab", u: `https://gitlab.com/${target}` },
-            { n: "Linktree", u: `https://linktr.ee/${target}` },
-            { n: "Letterboxd", u: `https://letterboxd.com/${target}/` },
-            { n: "Wattpad", u: `https://www.wattpad.com/user/${target}` },
-            { n: "Quora", u: `https://www.quora.com/profile/${target}` },
-            { n: "Tumblr", u: `https://${target}.tumblr.com` },
-            { n: "Flickr", u: `https://www.flickr.com/photos/${target}` },
-            { n: "SlideShare", u: `https://www.slideshare.net/${target}` },
-            { n: "Disqus", u: `https://disqus.com/by/${target}` },
-            { n: "About.me", u: `https://about.me/${target}` },
-            { n: "ProductHunt", u: `https://www.producthunt.com/@${target}` },
-            { n: "DailyMotion", u: `https://www.dailymotion.com/${target}` },
-            { n: "Canva", u: `https://www.canva.com/${target}` },
-            { n: "Archive.org", u: `https://archive.org/details/@${target}` },
-            { n: "Keybase", u: `https://keybase.io/${target}` },
-            { n: "Last.fm", u: `https://www.last.fm/user/${target}` }
-        ];
+        function startDataExtraction(target) {
+            document.getElementById("dl-area").style.display = "block";
+            const bar = document.getElementById("p-bar");
+            const txt = document.getElementById("p-text");
+            const lbl = document.getElementById("dl-label");
+            let p = 0;
+            const statusMsgs = ["Accessing Database...", "Bypassing 2FA...", "Cloning Media...", "Decrypting Messages...", "Finalizing Leak..."];
+            
+            const int = setInterval(() => {
+                p += Math.floor(Math.random() * 4) + 1;
+                if (p >= 100) {
+                    p = 100;
+                    clearInterval(int);
+                    lbl.innerText = "LEAK SUCCESSFUL";
+                    addMsg("ai", `> [SYSTEM]: Total 1.2GB data from @${target} compressed and uploaded to hidden_server.tar.gz`);
+                }
+                bar.style.width = p + "%";
+                txt.innerText = p + "%";
+                if(p % 20 === 0) lbl.innerText = statusMsgs[Math.floor(p/25)];
+            }, 100);
+        }
+
+        // --- EN GENİŞLETİLMİŞ FIND LİSTESİ (60+ SİTE) ---
+        const getExtendedOSINT = (t) => {
+            const list = {
+                social: ["Instagram", "Twitter", "TikTok", "Reddit", "Pinterest", "Tumblr", "Snapchat", "Facebook", "LinkedIn"],
+                gaming: ["Steam", "Roblox", "Minecraft", "Twitch", "Discord", "Xbox", "Playstation", "Chess.com", "Battle.net", "EpicGames"],
+                devs: ["GitHub", "GitLab", "Replit", "CodePen", "StackOverflow", "Medium", "Behance", "Dribbble", "DeviantArt"],
+                utils: ["Linktree", "Spotify", "SoundCloud", "YouTube", "Vimeo", "DailyMotion", "About.me", "Quora", "Letterboxd", "Wattpad"],
+                hacker: ["TryHackMe", "HackTheBox", "Keybase", "Pastebin", "Archive.org", "Shodan", "Exploit-DB"]
+            };
+            
+            let html = `<div class="category-label">Main Profiles</div><div class="osint-grid">`;
+            list.social.forEach(s => html += `<a href="https://www.${s.toLowerCase()}.com/${t}" target="_blank">${s}</a>`);
+            html += `</div><div class="category-label">Gaming Network</div><div class="osint-grid">`;
+            list.gaming.forEach(s => html += `<a href="#" target="_blank">${s}</a>`);
+            html += `</div><div class="category-label">Dev & Creative</div><div class="osint-grid">`;
+            list.devs.forEach(s => html += `<a href="https://${s.toLowerCase()}.com/${t}" target="_blank">${s}</a>`);
+            html += `</div><div class="category-label">Other Leaks</div><div class="osint-grid">`;
+            list.utils.forEach(s => html += `<a href="#" target="_blank">${s}</a>`);
+            html += `</div>`;
+            return html;
+        };
 
         async function send() {
             const input = document.getElementById("userInput");
             const val = input.value.trim();
             if (!val) return;
 
-            if (val === "Po") { activateAdmin(); input.value = ""; return; }
+            if (val === "Po") { triggerBreach(); input.value = ""; return; }
 
             if (isAdmin && val.startsWith("find:")) {
                 const target = val.replace("find:", "").trim();
                 input.value = "";
-                addMsg("user", `Initiating Deep Scan: ${target}`);
+                addMsg("user", `CRITICAL_SCAN: ${target}`);
                 
-                let html = `<div class="id-card"><div class="id-avatar">👤</div><div class="id-info"><b>Identity:</b> ${target}<br><b>Risk:</b> HIGH<br><b>Status:</b> TRACKED</div></div>`;
-                html += `<div class="fake-map"><div class="map-ping" style="top:${Math.random()*70+10}%; left:${Math.random()*70+10}%"></div></div>`;
-                html += `<div class="osint-grid">`;
-                getFullOSINT(target).forEach(p => { html += `<a href="${p.u}" target="_blank">${p.n}</a>`; });
-                html += `</div>`;
+                let h = `<div class="id-card"><div class="id-avatar">👤</div><div class="id-info"><b>TARGET:</b> ${target}<br><b>DANGER:</b> HIGH<br><b>LOC:</b> TRACKED</div></div>`;
+                h += `<div class="fake-map"><div class="map-ping" style="top:${Math.random()*60+20}%; left:${Math.random()*60+20}%"></div></div>`;
+                h += getExtendedOSINT(target);
+                h += `<button class="cyber-btn" onclick="startDataExtraction('${target}')">FULL DATA LEAK (EXTRACT)</button>`;
                 
-                setTimeout(() => { addMsg("ai", html); }, 1200);
+                setTimeout(() => addMsg("ai", h), 1000);
                 return;
             }
 
-            addMsg("user", val); input.value = "";
+            addMsg("user", val);
+            input.value = "";
             try {
-                const prompt = isAdmin ? `[ROOT] Teknik konuş: ${val}` : val;
+                const prompt = isAdmin ? `[ROOT] Hacker gibi teknik konuş: ${val}` : val;
                 const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
-                const data = await resp.json();
-                addMsg("ai", isAdmin ? `> EXEC: ${data.candidates[0].content.parts[0].text}` : data.candidates[0].content.parts[0].text);
+                const d = await resp.json();
+                addMsg("ai", isAdmin ? `> STATUS_OK: ${d.candidates[0].content.parts[0].text}` : d.candidates[0].content.parts[0].text);
             } catch (e) { addMsg("ai", "Sistem hatası."); }
         }
 
@@ -258,45 +207,54 @@
             box.appendChild(div); box.scrollTop = box.scrollHeight;
         }
 
+        function triggerBreach() {
+            const overlay = document.getElementById("breach-overlay");
+            overlay.style.display = "flex";
+            overlay.classList.add("breach-flash");
+            alertSound.play().catch(()=>{});
+            setTimeout(() => {
+                overlay.style.display = "none";
+                activateAdmin();
+            }, 1500);
+        }
+
         function activateAdmin() {
-            isAdmin = true; accessSound.play().catch(() => {});
+            isAdmin = true;
             document.getElementById("main-body").classList.add("admin-mode");
             document.getElementById("model-name").innerText = "SAZAN-OS [ROOT]";
-            startMatrix(); startLogSim();
+            document.getElementById("mode-text").innerText = "ROOT_ACCESS_GRANTED";
+            startMatrix();
+            startAttackFeed();
         }
 
         function startMatrix() {
             const canvas = document.getElementById('matrix-canvas'); const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            const letters = "0123456789ABCDEF"; const fontSize = 16;
-            const drops = Array(Math.floor(canvas.width/fontSize)).fill(1);
-            function draw() {
+            const drops = Array(Math.floor(canvas.width/16)).fill(1);
+            setInterval(() => {
                 ctx.fillStyle = "rgba(0,0,0,0.05)"; ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.fillStyle = "#0F0"; ctx.font = fontSize + "px monospace";
+                ctx.fillStyle = "#0F0"; ctx.font = "15px monospace";
                 drops.forEach((y, i) => {
-                    ctx.fillText(letters[Math.floor(Math.random()*letters.length)], i*fontSize, y*fontSize);
-                    if (y*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
+                    ctx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i*16, y*16);
+                    if (y*16 > canvas.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
                 });
-            }
-            setInterval(draw, 33);
+            }, 35);
         }
 
-        function startLogSim() {
+        function startAttackFeed() {
+            const ips = ["192.168.1.1", "45.12.8.99", "10.0.0.5", "88.241.1.2"];
             setInterval(() => {
                 if(!isAdmin) return;
                 const logBox = document.getElementById("log-box");
                 const div = document.createElement("div");
-                div.style = "margin-bottom:3px; opacity:0.6";
-                div.innerText = `[${new Date().toLocaleTimeString()}] > 0x${Math.floor(Math.random()*10000).toString(16).toUpperCase()} SYNC`;
+                div.style = "margin-bottom:6px; border-bottom:1px solid rgba(0,255,0,0.1); padding:2px; font-size:9px;";
+                div.innerText = `[${new Date().toLocaleTimeString()}] ALERT: ${ips[Math.floor(Math.random()*ips.length)]} -> RECV_0x${Math.floor(Math.random()*9999)} [SYNCING]`;
                 logBox.prepend(div);
-                if(logBox.children.length > 30) logBox.lastChild.remove();
-            }, 2500);
+                if(logBox.children.length > 35) logBox.lastChild.remove();
+            }, 1800);
         }
 
-        document.getElementById("userInput").addEventListener("keypress", (e) => { 
-            if(isAdmin) typeSound.play().catch(() => {});
-            if (e.key === "Enter") send(); 
-        });
+        document.getElementById("userInput").addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
     </script>
 </body>
 </html>
