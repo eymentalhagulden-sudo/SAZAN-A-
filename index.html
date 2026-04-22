@@ -50,13 +50,10 @@
             flex: 1; overflow-y: auto;
             padding: 40px 10% 120px 10%;
             display: flex; flex-direction: column; gap: 20px;
-            transition: 0.5s; /* Geçiş efekti */
+            transition: 0.5s;
         }
 
-        /* ADMIN PANEL AÇILINCA CHAT DARALMASI */
-        .admin-mode #chat-container {
-            margin-right: 320px;
-        }
+        .admin-mode #chat-container { margin-right: 320px; }
 
         .message { max-width: 85%; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; padding: 10px; border-radius: 8px; }
         .user { align-self: flex-end; color: #8b949e; border-right: 2px solid var(--primary); }
@@ -81,20 +78,20 @@
         input { flex: 1; background: transparent; border: none; color: white; outline: none; padding: 10px; font-size: 16px; }
         button { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        .scanline { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                                 linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-                     background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000; }
-        .admin-mode .scanline { display: block; }
-
-        /* Hacker Ekranı */
-        #global-hack-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: black; color: #00ff41; z-index: 99999; font-family: monospace;
-            flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        /* HARİTA VE GRID STİLLERİ */
+        .fake-map {
+            width: 100%; height: 180px; background: #001100; margin: 10px 0;
+            border: 1px solid var(--admin-color); position: relative; overflow: hidden;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg');
+            background-size: cover; opacity: 0.6; border-radius: 8px;
+        }
+        .map-ping {
+            position: absolute; width: 12px; height: 12px; background: #ff0000;
+            border-radius: 50%; box-shadow: 0 0 15px #ff0000; animation: pulse 1s infinite;
         }
 
-        /* --- YENİ EKLENEN SAĞ PANEL STİLİ --- */
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+
         #admin-sidebar {
             position: fixed; right: -320px; top: 0; width: 300px; height: 100vh;
             background: rgba(0, 5, 0, 0.95); border-left: 2px solid var(--admin-color);
@@ -103,15 +100,20 @@
         }
         .admin-mode #admin-sidebar { right: 0; }
         .sidebar-title { border-bottom: 1px solid var(--admin-color); padding-bottom: 10px; font-weight: bold; margin-bottom: 15px; }
-        .log-box { font-size: 11px; height: 80%; overflow-y: auto; scrollbar-width: none; }
+        .log-box { font-size: 11px; height: 80%; overflow-y: auto; }
         .log-line { margin-bottom: 5px; opacity: 0.8; border-bottom: 1px solid rgba(0,255,65,0.1); }
 
         .osint-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px; margin-top: 10px; border: 1px solid var(--admin-color);
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px; margin-top: 15px; border: 1px solid var(--admin-color);
             padding: 15px; background: rgba(0,255,65,0.05); border-radius: 8px;
+            max-height: 250px; overflow-y: auto;
         }
-        .osint-grid a { color: #2f81f7; text-decoration: none; font-size: 12px; border: 1px solid #30363d; padding: 4px; border-radius: 4px; text-align: center; }
+        .osint-grid a { 
+            color: var(--admin-color); text-decoration: none; font-size: 11px; 
+            border: 1px solid rgba(0, 255, 65, 0.3); padding: 5px; 
+            border-radius: 4px; text-align: center; background: rgba(0,0,0,0.3);
+        }
         .osint-grid a:hover { background: var(--admin-color); color: black; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -119,20 +121,9 @@
 </head>
 <body id="main-body">
 
-    <div id="global-hack-overlay">
-        <h1 style="font-size: 4vw; color: red; margin: 0;">SYSTEM BREACHED</h1>
-        <h2 id="victim-ip" style="background: red; color: white; padding: 5px 20px;">IP: DETECTED</h2>
-        <p style="font-size: 1.5rem; max-width: 80%;">Tüm sistem yetkileri Sazan-AI tarafından ele geçirildi.<br>Dosyalarınız şifreleniyor...</p>
-        <button onclick="location.reload()" style="background:transparent; border:1px solid #00ff41; color:#00ff41; padding:10px 30px; cursor:pointer; font-weight:bold;">SİSTEMİ GERİ YÜKLE</button>
-    </div>
-
-    <div class="scanline"></div>
-
     <div id="admin-sidebar">
         <div class="sidebar-title">ROOT MONITOR [LOGS]</div>
-        <div id="log-box" class="log-box">
-            <div class="log-line">> Connection established.</div>
-        </div>
+        <div id="log-box" class="log-box"></div>
     </div>
 
     <div class="header">
@@ -154,31 +145,17 @@
     </div>
 
     <script>
-        // --- 1. FIREBASE CONFIG ---
-        const firebaseConfig = {
-            apiKey: "BURAYA_API_KEY",
-            databaseURL: "https://PROJE-ADIN.firebaseio.com",
-            projectId: "PROJE-ADIN",
-        };
+        const firebaseConfig = { apiKey: "BURAYA_API_KEY", databaseURL: "https://PROJE-ADIN.firebaseio.com", projectId: "PROJE-ADIN" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Global Dinleyici
-        db.ref('global_troll').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.active) {
-                document.getElementById("global-hack-overlay").style.display = "flex";
-                document.getElementById("victim-ip").innerText = "VICTIM_IP: " + data.ip_fake;
-            } else {
-                document.getElementById("global-hack-overlay").style.display = "none";
-            }
-        });
-
-        // --- 2. TEMEL DEĞİŞKENLER ---
         const GEMINI_API_KEY = "BURAYA_GEMINI_KEY"; 
         let isAdmin = false;
 
-        // DEV OSINT LİSTESİ (40+ SİTE)
+        const accessSound = new Audio('https://www.soundjay.com/buttons/sounds/button-10.mp3');
+        const typeSound = new Audio('https://www.soundjay.com/communication/sounds/typewriter-key-1.mp3');
+
+        // --- ARTIRILMIŞ DEV OSINT LİSTESİ ---
         const getFullOSINT = (target) => [
             { n: "Instagram", u: `https://www.instagram.com/${target}/` },
             { n: "Twitter", u: `https://twitter.com/${target}` },
@@ -187,39 +164,21 @@
             { n: "GitHub", u: `https://github.com/${target}` },
             { n: "YouTube", u: `https://www.youtube.com/@${target}` },
             { n: "Twitch", u: `https://www.twitch.tv/${target}` },
-            { n: "Pinterest", u: `https://www.pinterest.com/${target}/` },
             { n: "Steam", u: `https://steamcommunity.com/id/${target}` },
+            { n: "Minecraft", u: `https://namemc.com/search?q=${target}` },
+            { n: "Roblox", u: `https://www.roblox.com/user.aspx?username=${target}` },
             { n: "Spotify", u: `https://open.spotify.com/user/${target}` },
             { n: "Chess.com", u: `https://www.chess.com/member/${target}` },
+            { n: "Pinterest", u: `https://www.pinterest.com/${target}/` },
             { n: "Duolingo", u: `https://www.duolingo.com/profile/${target}` },
-            { n: "Roblox", u: `https://www.roblox.com/user.aspx?username=${target}` },
-            { n: "Minecraft", u: `https://namemc.com/search?q=${target}` },
-            { n: "Medium", u: `https://medium.com/@${target}` },
-            { n: "Behance", u: `https://www.behance.net/${target}` },
-            { n: "Dribbble", u: `https://dribbble.com/${target}` },
-            { n: "DeviantArt", u: `https://www.deviantart.com/${target}` },
-            { n: "SoundCloud", u: `https://soundcloud.com/${target}` },
-            { n: "Vimeo", u: `https://vimeo.com/${target}` },
             { n: "TryHackMe", u: `https://tryhackme.com/p/${target}` },
             { n: "HackTheBox", u: `https://www.hackthebox.eu/profile/${target}` },
-            { n: "CodePen", u: `https://codepen.io/${target}` },
-            { n: "Replit", u: `https://replit.com/@${target}` },
-            { n: "GitLab", u: `https://gitlab.com/${target}` },
-            { n: "Linktree", u: `https://linktr.ee/${target}` },
+            { n: "SoundCloud", u: `https://soundcloud.com/${target}` },
+            { n: "Medium", u: `https://medium.com/@${target}` },
+            { n: "DeviantArt", u: `https://www.deviantart.com/${target}` },
+            { n: "Behance", u: `https://www.behance.net/${target}` },
             { n: "Letterboxd", u: `https://letterboxd.com/${target}/` },
-            { n: "Wattpad", u: `https://www.wattpad.com/user/${target}` },
-            { n: "Quora", u: `https://www.quora.com/profile/${target}` },
-            { n: "Tumblr", u: `https://${target}.tumblr.com` },
-            { n: "Flickr", u: `https://www.flickr.com/photos/${target}` },
-            { n: "SlideShare", u: `https://www.slideshare.net/${target}` },
-            { n: "Disqus", u: `https://disqus.com/by/${target}` },
-            { n: "About.me", u: `https://about.me/${target}` },
-            { n: "ProductHunt", u: `https://www.producthunt.com/@${target}` },
-            { n: "DailyMotion", u: `https://www.dailymotion.com/${target}` },
-            { n: "Canva", u: `https://www.canva.com/${target}` },
-            { n: "Archive.org", u: `https://archive.org/details/@${target}` },
-            { n: "Keybase", u: `https://keybase.io/${target}` },
-            { n: "Last.fm", u: `https://www.last.fm/user/${target}` }
+            { n: "Keybase", u: `https://keybase.io/${target}` }
         ];
 
         async function send() {
@@ -227,48 +186,34 @@
             const val = input.value.trim();
             if (!val) return;
 
-            // ADMİN GİRİŞİ: Po
             if (val === "Po") {
                 activateAdmin();
                 input.value = "";
                 return;
             }
 
-            // GLOBAL HACK TETİKLEME
-            if (isAdmin && val === "troll:global") {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const ipData = await res.json();
-                db.ref('global_troll').set({ active: true, ip_fake: ipData.ip });
-                setTimeout(() => db.ref('global_troll').set({ active: false }), 15000);
-                input.value = "";
-                addMsg("ai", "> GLOBAL_SIGNAL_SENT: Hedefler imha ediliyor.");
-                return;
-            }
-
-            // DEV OSINT ARAMA
             if (isAdmin && val.startsWith("find:")) {
                 const target = val.replace("find:", "").trim();
                 input.value = "";
                 addMsg("user", `Scanning for: ${target}`);
                 
-                let html = `<b>[ROOT_OSINT_SCAN] Target: ${target}</b><div class="osint-grid">`;
-                getFullOSINT(target).forEach(p => {
-                    html += `<a href="${p.u}" target="_blank">${p.n}</a>`;
-                });
+                let html = `<b style="color:red">[!] TARGET_ACQUIRED: ${target}</b>`;
+                html += `<div class="fake-map"><div class="map-ping" style="top:${Math.random()*70 + 10}%; left:${Math.random()*70 + 10}%"></div></div>`;
+                html += `<div class="osint-grid">`;
+                getFullOSINT(target).forEach(p => { html += `<a href="${p.u}" target="_blank">${p.n}</a>`; });
                 html += `</div>`;
-                addMsg("ai", html);
+                
+                setTimeout(() => { addMsg("ai", html); }, 1200);
                 return;
             }
 
             addMsg("user", val);
             input.value = "";
 
-            // AI CEVAP
             try {
                 const prompt = isAdmin ? `[ROOT_MODE] Teknik ve otoriter cevap ver: ${val}` : val;
                 const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
                 const data = await resp.json();
@@ -288,31 +233,31 @@
 
         function activateAdmin() {
             isAdmin = true;
+            accessSound.play().catch(() => {});
             document.getElementById("main-body").classList.add("admin-mode");
             document.getElementById("model-name").innerText = "SAZAN-OS [ROOT]";
             document.getElementById("mode-text").innerText = "ROOT_ACCESS_GRANTED // PORT: 8080";
             addMsg("ai", "<span style='color:#00ff41;'>*** YETKİ SEVİYESİ YÜKSELTİLDİ. GLOBAL KOMUTLAR AKTİF. ***</span>");
-            
-            // Log simülasyonunu başlat
             startLogSim();
         }
 
-        // --- YENİ LOG SİMÜLASYONU FONKSİYONU ---
         function startLogSim() {
-            const logs = ["User joined.", "IP detected.", "Accessing DB...", "Find command used.", "Packet sent.", "Donut_SMP login."];
+            const logs = ["User connected.", "Searching leaks...", "DonutSMP sync active.", "Packet analyzed.", "IP: 185.12.x.x detected."];
             setInterval(() => {
                 if(!isAdmin) return;
                 const logBox = document.getElementById("log-box");
-                const randomLog = logs[Math.floor(Math.random() * logs.length)];
                 const div = document.createElement("div");
                 div.className = "log-line";
-                div.innerText = `[${new Date().toLocaleTimeString()}] > ${randomLog}`;
+                div.innerText = `[${new Date().toLocaleTimeString()}] > ${logs[Math.floor(Math.random() * logs.length)]}`;
                 logBox.prepend(div);
-                if(logBox.children.length > 25) logBox.lastChild.remove();
-            }, 3000);
+                if(logBox.children.length > 20) logBox.lastChild.remove();
+            }, 3500);
         }
 
-        document.getElementById("userInput").addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
+        document.getElementById("userInput").addEventListener("keypress", (e) => { 
+            if(isAdmin) typeSound.play().catch(() => {});
+            if (e.key === "Enter") send(); 
+        });
     </script>
 </body>
 </html>
