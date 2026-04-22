@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAZAN AI | THE COLLECTOR v4.5</title>
+    <title>SAZAN OS | ULTIMATE TERMINAL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
@@ -23,91 +23,107 @@
             color: var(--text);
             font-family: 'Courier New', monospace;
             display: flex; flex-direction: column;
-            transition: all 0.5s ease;
             overflow: hidden;
+            transition: background 0.5s;
         }
 
         body.admin-mode { background-color: #000; }
 
-        /* MATRIX & BREACH */
+        /* MATRIX CANVAS */
         #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: none; }
         .admin-mode #matrix-canvas { display: block; }
-        #breach-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,0,0,0.3); display: none; z-index: 999; justify-content: center; align-items: center; font-size: 4rem; color: white; text-shadow: 0 0 20px red; pointer-events: none; }
-        .breach-flash { animation: flash 0.15s infinite; }
-        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* PANELS */
-        #vpn-panel { position: fixed; top: 70px; left: 20px; background: rgba(0, 15, 0, 0.95); border: 1px solid var(--admin-color); padding: 12px; border-radius: 8px; display: none; z-index: 100; font-size: 11px; color: var(--admin-color); width: 220px; }
-        .admin-mode #vpn-panel { display: block; }
-        .cyber-btn { background: transparent; border: 1px solid var(--admin-color); color: var(--admin-color); padding: 6px; cursor: pointer; margin-top: 8px; font-size: 10px; width: 100%; font-family: monospace; transition: 0.3s; }
-        .cyber-btn:hover { background: var(--admin-color); color: black; box-shadow: 0 0 10px var(--admin-color); }
+        /* EDEZ LOGIN SCREEN */
+        #edez-login {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+            flex-direction: column; backdrop-filter: blur(10px);
+        }
+        .login-box {
+            border: 1px solid var(--admin-color);
+            padding: 40px; background: rgba(0,255,65,0.02);
+            box-shadow: 0 0 30px rgba(0,255,65,0.2);
+            text-align: center; width: 320px; position: relative;
+        }
+        .login-box h2 { color: var(--admin-color); margin-top: 0; font-size: 16px; letter-spacing: 4px; }
+        .login-input {
+            background: transparent; border: 1px solid var(--admin-color);
+            color: var(--admin-color); width: 85%; padding: 12px;
+            margin: 20px 0; outline: none; text-align: center; font-family: monospace;
+        }
+        .scanline { width: 100%; height: 2px; background: rgba(0, 255, 65, 0.4); position: absolute; left: 0; animation: scanning 2s infinite; }
+        @keyframes scanning { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* CHAT */
-        .header { padding: 15px 30px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: rgba(11, 14, 20, 0.98); z-index: 10; }
+        /* UI ELEMENTS */
+        .header { padding: 15px 30px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: rgba(11, 14, 20, 0.95); z-index: 10; }
+        .root-btn { background: transparent; border: 1px solid var(--admin-color); color: var(--admin-color); padding: 6px 18px; cursor: pointer; font-size: 10px; transition: 0.3s; font-weight: bold; }
+        .root-btn:hover { background: var(--admin-color); color: #000; box-shadow: 0 0 15px var(--admin-color); }
+
         #chat-container { flex: 1; overflow-y: auto; padding: 30px 10% 120px 10%; display: flex; flex-direction: column; gap: 20px; }
         .admin-mode #chat-container { margin-right: 320px; }
+
         .message { max-width: 85%; line-height: 1.6; font-size: 14px; padding: 12px; border-radius: 8px; animation: fadeIn 0.3s ease; }
         .user { align-self: flex-end; border-right: 3px solid var(--primary); background: rgba(47, 129, 247, 0.05); }
         .ai { align-self: flex-start; border-left: 3px solid #333; background: rgba(255,255,255,0.02); }
-        .admin-mode .ai { border-left-color: var(--admin-color); color: var(--admin-color); box-shadow: inset 0 0 10px rgba(0,255,65,0.05); }
+        .admin-mode .ai { border-left-color: var(--admin-color); color: var(--admin-color); text-shadow: 0 0 5px rgba(0,255,65,0.3); }
 
-        /* FIND: SYSTEM (THE HEART) */
-        .id-card { border: 1px solid var(--admin-color); background: rgba(0, 255, 65, 0.1); padding: 15px; border-radius: 8px; display: flex; gap: 15px; margin-bottom: 10px; }
-        .osint-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 5px; border: 1px solid var(--admin-color); padding: 10px; max-height: 350px; overflow-y: auto; background: rgba(0,0,0,0.8); }
-        .osint-grid a { color: var(--admin-color); text-decoration: none; font-size: 9px; border: 1px solid rgba(0, 255, 65, 0.2); padding: 4px; text-align: center; background: #000; }
-        .osint-grid a:hover { border-color: var(--admin-color); background: rgba(0,255,65,0.1); }
-        .category-label { font-size: 10px; color: #aaa; margin: 10px 0 5px 0; text-transform: uppercase; border-bottom: 1px solid #333; }
+        /* FIND & OSINT GRID */
+        .osint-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 5px; margin: 10px 0; border: 1px solid var(--admin-color); padding: 10px; background: rgba(0,0,0,0.7); }
+        .osint-grid a { color: var(--admin-color); text-decoration: none; font-size: 9px; border: 1px solid rgba(0,255,65,0.3); padding: 4px; text-align: center; }
+        .osint-grid a:hover { background: var(--admin-color); color: #000; }
+        .cat-label { font-size: 10px; color: #888; margin-top: 10px; display: block; text-transform: uppercase; }
 
         /* PROGRESS BAR */
-        .progress-container { width: 100%; background: #111; border: 1px solid var(--admin-color); margin-top: 10px; height: 15px; position: relative; overflow: hidden; }
+        .progress-container { width: 100%; background: #111; border: 1px solid var(--admin-color); margin: 10px 0; height: 15px; position: relative; }
         .progress-bar { width: 0%; height: 100%; background: var(--admin-color); transition: width 0.2s; }
-        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 9px; color: #fff; mix-blend-mode: difference; line-height: 15px; }
+        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 9px; line-height: 15px; color: #fff; mix-blend-mode: difference; }
 
         /* SIDEBAR */
-        #admin-sidebar { position: fixed; right: -320px; top: 0; width: 300px; height: 100vh; background: rgba(0, 5, 0, 0.98); border-left: 2px solid var(--admin-color); transition: 0.5s; padding: 20px; z-index: 50; color: var(--admin-color); }
+        #admin-sidebar { position: fixed; right: -320px; top: 0; width: 300px; height: 100vh; background: rgba(0, 5, 0, 0.98); border-left: 2px solid var(--admin-color); transition: 0.5s; padding: 20px; z-index: 50; color: var(--admin-color); font-size: 11px; }
         .admin-mode #admin-sidebar { right: 0; }
-        .log-box { font-size: 10px; height: 85%; overflow-y: auto; margin-top: 10px; border-top: 1px solid var(--admin-color); padding-top: 10px; scroll-behavior: smooth; }
+        .log-box { height: 85%; overflow-y: auto; margin-top: 15px; border-top: 1px solid var(--admin-color); padding-top: 10px; }
 
         .input-wrapper { position: fixed; bottom: 0; width: 100%; padding: 20px 0; background: linear-gradient(transparent, var(--bg) 90%); display: flex; justify-content: center; }
         .input-container { width: 80%; max-width: 900px; background: #161b22; border: 1px solid #333; border-radius: 12px; display: flex; padding: 8px 15px; }
-        .admin-mode .input-container { border-color: var(--admin-color); box-shadow: 0 0 15px rgba(0,255,65,0.1); }
-        input { flex: 1; background: transparent; border: none; color: white; outline: none; padding: 10px; font-family: 'Courier New', monospace; font-size: 15px; }
+        .admin-mode .input-container { border-color: var(--admin-color); }
+        input { flex: 1; background: transparent; border: none; color: white; outline: none; padding: 10px; font-family: monospace; font-size: 15px; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body id="main-body">
 
-    <div id="breach-overlay">BREACH DETECTED</div>
-    <canvas id="matrix-canvas"></canvas>
-
-    <div id="vpn-panel">
-        <div><b>TUNNEL:</b> <span id="vpn-stat" style="color:red">OFFLINE</span></div>
-        <button class="cyber-btn" onclick="toggleVPN()">ESTABLISH SECURE LINK</button>
-        <div id="dl-area" style="display:none; margin-top:10px; border-top:1px solid #0f0; padding-top:5px;">
-            <div id="dl-label" style="font-size:9px;">Ready to sniff packets...</div>
-            <div class="progress-container"><div id="p-bar" class="progress-bar"></div><div id="p-text" class="progress-text">0%</div></div>
+    <div id="edez-login">
+        <div class="login-box">
+            <div class="scanline"></div>
+            <h2>SYSTEM_AUTHORIZATION</h2>
+            <div id="status-msg" style="font-size: 10px; color: #666; margin-bottom: 5px;">ENTER ACCESS KEY</div>
+            <input type="password" id="pass-field" class="login-input" placeholder="********">
+            <div style="font-size: 8px; opacity: 0.4;">SECURE KERNEL v5.5 / ROOT_ONLY</div>
         </div>
     </div>
 
+    <canvas id="matrix-canvas"></canvas>
+
     <div id="admin-sidebar">
-        <div style="letter-spacing: 2px;"><b>S.Y.S.T.E.M L.O.G.S</b></div>
+        <div style="letter-spacing: 2px;"><b>GLOBAL_OPERATIONS_FEED</b></div>
         <div id="log-box" class="log-box"></div>
     </div>
 
     <div class="header">
-        <div><span style="width:10px; height:10px; background:#238636; border-radius:50%; display:inline-block; box-shadow:0 0 5px #238636;"></span> <b>SAZAN-AI v4.5</b></div>
-        <div id="mode-text" style="font-size: 10px; color: #8b949e;">GUEST_MODE</div>
+        <div><span style="color:var(--admin-color)">●</span> <b id="sys-title">SAZAN OS</b></div>
+        <button id="login-trigger" class="root-btn" onclick="openLogin()">ROOT LOGIN</button>
     </div>
 
     <div id="chat-container">
-        <div class="message ai">Terminal hazır. find:[username] veya root yetkisi için "Po" yazın.</div>
+        <div class="message ai">Sistem yüklendi. Admin erişimi için sağ üste tıkla veya "Po" yaz.</div>
     </div>
 
     <div class="input-wrapper">
         <div class="input-container">
-            <input type="text" id="userInput" placeholder="root@sazan:~$ " autocomplete="off">
-            <button onclick="send()" style="background:none; border:1px solid var(--admin-color); color:var(--admin-color); padding:0 15px; border-radius:5px; cursor:pointer;">RUN</button>
+            <input type="text" id="userInput" placeholder="user@terminal:~$ " autocomplete="off">
+            <button onclick="send()" style="background:none; border:none; color:var(--admin-color); cursor:pointer; font-weight:bold;">[ENTER]</button>
         </div>
     </div>
 
@@ -115,74 +131,47 @@
         const GEMINI_API_KEY = "BURAYA_GEMINI_KEY"; 
         let isAdmin = false;
 
-        const alertSound = new Audio('https://www.soundjay.com/misc/sounds/fail-buzzer-04.mp3');
-
-        function toggleVPN() {
-            const s = document.getElementById("vpn-stat");
-            s.innerText = "BYPASSING..."; s.style.color = "yellow";
-            setTimeout(() => { s.innerText = "PROTECTED"; s.style.color = "#0f0"; }, 1500);
+        function openLogin() {
+            document.getElementById("edez-login").style.display = "flex";
+            document.getElementById("pass-field").focus();
         }
 
-        function startDataExtraction(target) {
-            document.getElementById("dl-area").style.display = "block";
-            const bar = document.getElementById("p-bar");
-            const txt = document.getElementById("p-text");
-            const lbl = document.getElementById("dl-label");
-            let p = 0;
-            const statusMsgs = ["Accessing Database...", "Bypassing 2FA...", "Cloning Media...", "Decrypting Messages...", "Finalizing Leak..."];
-            
-            const int = setInterval(() => {
-                p += Math.floor(Math.random() * 4) + 1;
-                if (p >= 100) {
-                    p = 100;
-                    clearInterval(int);
-                    lbl.innerText = "LEAK SUCCESSFUL";
-                    addMsg("ai", `> [SYSTEM]: Total 1.2GB data from @${target} compressed and uploaded to hidden_server.tar.gz`);
-                }
-                bar.style.width = p + "%";
-                txt.innerText = p + "%";
-                if(p % 20 === 0) lbl.innerText = statusMsgs[Math.floor(p/25)];
-            }, 100);
-        }
-
-        // --- EN GENİŞLETİLMİŞ FIND LİSTESİ (60+ SİTE) ---
-        const getExtendedOSINT = (t) => {
-            const list = {
-                social: ["Instagram", "Twitter", "TikTok", "Reddit", "Pinterest", "Tumblr", "Snapchat", "Facebook", "LinkedIn"],
-                gaming: ["Steam", "Roblox", "Minecraft", "Twitch", "Discord", "Xbox", "Playstation", "Chess.com", "Battle.net", "EpicGames"],
-                devs: ["GitHub", "GitLab", "Replit", "CodePen", "StackOverflow", "Medium", "Behance", "Dribbble", "DeviantArt"],
-                utils: ["Linktree", "Spotify", "SoundCloud", "YouTube", "Vimeo", "DailyMotion", "About.me", "Quora", "Letterboxd", "Wattpad"],
-                hacker: ["TryHackMe", "HackTheBox", "Keybase", "Pastebin", "Archive.org", "Shodan", "Exploit-DB"]
-            };
-            
-            let html = `<div class="category-label">Main Profiles</div><div class="osint-grid">`;
-            list.social.forEach(s => html += `<a href="https://www.${s.toLowerCase()}.com/${t}" target="_blank">${s}</a>`);
-            html += `</div><div class="category-label">Gaming Network</div><div class="osint-grid">`;
-            list.gaming.forEach(s => html += `<a href="#" target="_blank">${s}</a>`);
-            html += `</div><div class="category-label">Dev & Creative</div><div class="osint-grid">`;
-            list.devs.forEach(s => html += `<a href="https://${s.toLowerCase()}.com/${t}" target="_blank">${s}</a>`);
-            html += `</div><div class="category-label">Other Leaks</div><div class="osint-grid">`;
-            list.utils.forEach(s => html += `<a href="#" target="_blank">${s}</a>`);
-            html += `</div>`;
-            return html;
-        };
+        document.getElementById("pass-field").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                const s = document.getElementById("status-msg");
+                s.innerText = "BYPASSING KERNEL..."; s.style.color = "yellow";
+                setTimeout(() => {
+                    s.innerText = "ACCESS GRANTED"; s.style.color = "#0f0";
+                    setTimeout(() => {
+                        document.getElementById("edez-login").style.display = "none";
+                        activateAdmin();
+                    }, 1000);
+                }, 1500);
+            }
+        });
 
         async function send() {
             const input = document.getElementById("userInput");
             const val = input.value.trim();
             if (!val) return;
 
-            if (val === "Po") { triggerBreach(); input.value = ""; return; }
+            if (val === "Po") { openLogin(); input.value = ""; return; }
 
+            // GENİŞLETİLMİŞ FIND KOMUTU
             if (isAdmin && val.startsWith("find:")) {
-                const target = val.replace("find:", "").trim();
+                const t = val.replace("find:", "").trim();
                 input.value = "";
-                addMsg("user", `CRITICAL_SCAN: ${target}`);
+                addMsg("user", `INITIATING_DEEP_SCAN: ${t}`);
                 
-                let h = `<div class="id-card"><div class="id-avatar">👤</div><div class="id-info"><b>TARGET:</b> ${target}<br><b>DANGER:</b> HIGH<br><b>LOC:</b> TRACKED</div></div>`;
-                h += `<div class="fake-map"><div class="map-ping" style="top:${Math.random()*60+20}%; left:${Math.random()*60+20}%"></div></div>`;
-                h += getExtendedOSINT(target);
-                h += `<button class="cyber-btn" onclick="startDataExtraction('${target}')">FULL DATA LEAK (EXTRACT)</button>`;
+                let h = `<div style="border:1px solid #0f0; padding:10px; margin-bottom:10px; background:rgba(0,255,0,0.05)"><b>TRACKING:</b> @${t} detected in 64 databases.</div>`;
+                h += `<span class="cat-label">Social & Forums</span><div class="osint-grid">`;
+                ["Instagram", "Twitter", "TikTok", "Reddit", "Reddit", "Snapchat", "Tumblr", "Pinterest"].forEach(s => h += `<a href="https://www.google.com/search?q=${t}+${s}" target="_blank">${s}</a>`);
+                h += `</div><span class="cat-label">Gaming & Community</span><div class="osint-grid">`;
+                ["Steam", "Minecraft", "Roblox", "Twitch", "Discord", "Xbox", "Chess.com", "Epic"].forEach(s => h += `<a href="#" target="_blank">${s}</a>`);
+                h += `</div><span class="cat-label">Developer Tools</span><div class="osint-grid">`;
+                ["GitHub", "GitLab", "Replit", "CodePen", "StackOverflow", "Medium"].forEach(s => h += `<a href="#" target="_blank">${s}</a>`);
+                h += `</div><button class="root-btn" style="width:100%; margin-top:10px;" onclick="extractData('${t}')">EXTRACT PRIVATE FOLDERS</button>`;
+                h += `<div id="dl-box" style="display:none"><div class="progress-container"><div id="p-bar" class="progress-bar"></div><div id="p-text" class="progress-text">0%</div></div></div>`;
                 
                 setTimeout(() => addMsg("ai", h), 1000);
                 return;
@@ -197,8 +186,23 @@
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
                 const d = await resp.json();
-                addMsg("ai", isAdmin ? `> STATUS_OK: ${d.candidates[0].content.parts[0].text}` : d.candidates[0].content.parts[0].text);
+                addMsg("ai", isAdmin ? `> EXEC_RESULT: ${d.candidates[0].content.parts[0].text}` : d.candidates[0].content.parts[0].text);
             } catch (e) { addMsg("ai", "Sistem hatası."); }
+        }
+
+        function extractData(t) {
+            document.getElementById("dl-box").style.display = "block";
+            let p = 0;
+            const int = setInterval(() => {
+                p += Math.floor(Math.random()*5)+1;
+                if(p > 100) p = 100;
+                document.getElementById("p-bar").style.width = p + "%";
+                document.getElementById("p-text").innerText = p + "%";
+                if(p === 100) {
+                    clearInterval(int);
+                    addMsg("ai", `> SUCCESS: Data leak for @${t} completed. All packets saved to /vault/leaks/`);
+                }
+            }, 150);
         }
 
         function addMsg(type, text) {
@@ -207,24 +211,13 @@
             box.appendChild(div); box.scrollTop = box.scrollHeight;
         }
 
-        function triggerBreach() {
-            const overlay = document.getElementById("breach-overlay");
-            overlay.style.display = "flex";
-            overlay.classList.add("breach-flash");
-            alertSound.play().catch(()=>{});
-            setTimeout(() => {
-                overlay.style.display = "none";
-                activateAdmin();
-            }, 1500);
-        }
-
         function activateAdmin() {
             isAdmin = true;
-            document.getElementById("main-body").classList.add("admin-mode");
-            document.getElementById("model-name").innerText = "SAZAN-OS [ROOT]";
-            document.getElementById("mode-text").innerText = "ROOT_ACCESS_GRANTED";
+            document.body.classList.add("admin-mode");
+            document.getElementById("sys-title").innerText = "SAZAN-CORE [ROOT]";
+            document.getElementById("login-trigger").style.display = "none";
             startMatrix();
-            startAttackFeed();
+            startLogs();
         }
 
         function startMatrix() {
@@ -241,17 +234,17 @@
             }, 35);
         }
 
-        function startAttackFeed() {
-            const ips = ["192.168.1.1", "45.12.8.99", "10.0.0.5", "88.241.1.2"];
+        function startLogs() {
+            const servers = ["DE_SERVER", "US_HOST", "RU_MAIN", "TR_GATE"];
             setInterval(() => {
                 if(!isAdmin) return;
                 const logBox = document.getElementById("log-box");
-                const div = document.createElement("div");
-                div.style = "margin-bottom:6px; border-bottom:1px solid rgba(0,255,0,0.1); padding:2px; font-size:9px;";
-                div.innerText = `[${new Date().toLocaleTimeString()}] ALERT: ${ips[Math.floor(Math.random()*ips.length)]} -> RECV_0x${Math.floor(Math.random()*9999)} [SYNCING]`;
-                logBox.prepend(div);
-                if(logBox.children.length > 35) logBox.lastChild.remove();
-            }, 1800);
+                const d = document.createElement("div");
+                d.style = "margin-bottom:6px; opacity:0.6; border-bottom:1px solid rgba(0,255,0,0.1); padding:2px;";
+                d.innerText = `[${new Date().toLocaleTimeString()}] INBOUND_FROM_${servers[Math.floor(Math.random()*4)]}: 0x${Math.floor(Math.random()*9999)} [OK]`;
+                logBox.prepend(d);
+                if(logBox.children.length > 30) logBox.lastChild.remove();
+            }, 2200);
         }
 
         document.getElementById("userInput").addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
